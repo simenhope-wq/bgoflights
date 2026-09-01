@@ -12,11 +12,14 @@ import { rateLimit } from "./middleware/rate-limit";
 const app = new Hono();
 
 // CORS middleware - validates origin against allowlist.
-// Local dev only for now (webapp on :8000 talking to backend on :3000).
-// Production origins get added once hosting is decided.
+// Localhost for dev, plus the deployed frontend(s): the temporary Render
+// static site used for testing, and grense.xyz once DNS points there (added
+// up front so connecting the domain later doesn't need another deploy).
 const allowed = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+  /^https:\/\/grense\.onrender\.com$/,
+  /^https:\/\/(www\.)?grense\.xyz$/,
 ];
 
 app.use(
