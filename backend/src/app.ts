@@ -1,5 +1,3 @@
-import "dotenv/config";
-import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import "./env";
@@ -9,7 +7,14 @@ import { privateJetsRouter } from "./routes/private-jets";
 import { logger } from "hono/logger";
 import { rateLimit } from "./middleware/rate-limit";
 
-const app = new Hono();
+// The Hono app itself, with no runtime-specific bootstrapping (no dotenv,
+// no @hono/node-server serve() call) so it can be imported by both:
+// - local-server.ts (plain Node, via @hono/node-server, for local dev)
+// - Vercel, which auto-detects this file (backend/ as the project's Root
+//   Directory) via its default export and runs it as a Vercel Function —
+//   see https://vercel.com/docs/frameworks/backend/hono ("zero configuration",
+//   recognizes src/app.ts among a fixed set of filenames).
+export const app = new Hono();
 
 // CORS middleware - validates origin against allowlist.
 // Localhost for dev, plus the deployed frontend(s): the temporary Render
@@ -56,8 +61,4 @@ app.onError((err, c) => {
   return c.json({ error: { message: err.message, code: "INTERNAL" } }, 500);
 });
 
-const port = Number(process.env.PORT) || 3000;
-
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`Backend running at http://localhost:${info.port}`);
-});
+export default app;

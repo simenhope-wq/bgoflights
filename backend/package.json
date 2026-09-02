@@ -1,11 +1,11 @@
 {
   "name": "backend",
-  "module": "src/index.ts",
+  "module": "src/local-server.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/local-server.ts",
+    "start": "tsx src/local-server.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
