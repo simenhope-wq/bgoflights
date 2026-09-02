@@ -7,6 +7,7 @@ import { FlightSection } from "@/components/board/FlightSection";
 import { OsloClock } from "@/components/board/OsloClock";
 import { PrivateJetSection } from "@/components/board/PrivateJetSection";
 import { SplitFlapText } from "@/components/board/SplitFlapText";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useFlightBoard } from "@/hooks/use-flight-board";
 import { usePrivateJets } from "@/hooks/use-private-jets";
 import { BorderCheckPanel } from "@/components/board/BorderCheckPanel";
@@ -159,6 +160,7 @@ const Index = () => {
           <div className="relative flex items-center justify-center gap-2 sm:hidden">
             <DateStepper date={date} onShift={shift} onToday={() => setDate(todayInOslo())} />
             <div className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-nowrap items-center gap-1">
+              <ThemeToggle />
               {refreshButton}
             </div>
           </div>
@@ -181,6 +183,7 @@ const Index = () => {
             {/* Empty middle column — the date now lives in the top strip. */}
             <span aria-hidden="true" />
             <div className="flex items-center justify-end gap-1.5">
+              <ThemeToggle />
               {refreshButton}
               <CopyButton
                 getBlocks={() => buildBoardBlocks(dayBoard, dayJets, "day")}

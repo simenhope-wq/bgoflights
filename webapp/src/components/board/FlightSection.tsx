@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import { PlaneLanding, PlaneTakeoff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import {
@@ -16,7 +15,7 @@ import {
   type StatusTone,
 } from "@/lib/flights";
 import { ColumnLabel } from "./ColumnLabel";
-import { EuStars } from "./EuStars";
+import { SectionPlate } from "./SectionPlate";
 import { SplitFlapText } from "./SplitFlapText";
 import { TrackButton } from "./TrackButton";
 
@@ -65,28 +64,12 @@ export function FlightSection({
   return (
     // Avgang and Ankomst butt straight together — their borders overlap by 1px.
     <section className="-mt-px first:mt-0">
-      {/* Brushed metal header plate */}
-      <div
-        className="flex flex-wrap items-center justify-between gap-2 rounded-t-[3px] border border-b-0 border-board-frame px-3 py-2"
-        style={{
-          background: "hsl(var(--plate))",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          {isArrivals ? (
-            <PlaneLanding className="h-5 w-5 shrink-0 text-white sm:h-6 sm:w-6" aria-hidden="true" />
-          ) : (
-            <PlaneTakeoff className="h-5 w-5 shrink-0 text-white sm:h-6 sm:w-6" aria-hidden="true" />
-          )}
-          <h2 className="font-signage text-lg font-semibold uppercase tracking-[0.22em] text-white sm:text-xl">
-            {title}
-          </h2>
-          <span className="font-signage text-[10px] uppercase tracking-[0.2em] text-white/75">
-            {loading ? "· · ·" : `${flights.length} fly`}
-          </span>
-        </div>
-        <EuStars className="h-6 w-6 sm:h-7 sm:w-7" />
-      </div>
+      {/* Yellow signage plate */}
+      <SectionPlate
+        title={title}
+        arriving={isArrivals}
+        note={loading ? "· · ·" : `${flights.length} fly`}
+      />
 
       {/* The board itself */}
       <div
@@ -98,7 +81,7 @@ export function FlightSection({
       >
         <div className="text-[12px] leading-tight sm:text-[18px]">
           {/* Column labels, screen-printed on the board frame */}
-          <div className="flex gap-1 pb-2 text-flap-dim sm:gap-2">
+          <div className="flex gap-1 pb-2 text-flap-ink sm:gap-2">
             <ColumnLabel label="Tid" width={W.time} />
             <ColumnLabel label={timeLabel} width={W.eta} />
             <ColumnLabel label="Fly" width={W.flight} />
@@ -110,10 +93,11 @@ export function FlightSection({
             {/* Status hugs the right edge of the board, so its outer margin
                 mirrors the padding "Tid" sits behind on the left. */}
             <span className="ml-auto flex shrink-0 items-start gap-1 sm:gap-2">
-              <ColumnLabel label="Status" width={W.status} className="hidden sm:inline-block" />
-              {/* Slot for the Flightradar24 link — kept in the header so the
-                  columns line up whether or not a row has one. */}
+              {/* Slot for the Flightradar24 link — it rides in the gap ahead of
+                  Status, and is kept in the header so the columns line up
+                  whether or not a row actually has one. */}
               {showTrack ? <span className="w-4 shrink-0 sm:w-5" /> : null}
+              <ColumnLabel label="Status" width={W.status} className="hidden sm:inline-block" />
             </span>
           </div>
 
@@ -216,16 +200,16 @@ export function FlightSection({
                       />
                     </span>
                     <span className="ml-auto flex shrink-0 items-start gap-1 sm:gap-2">
-                      <SplitFlapText
-                        value={status.label}
-                        width={W.status}
-                        flipKey={flipKey} className={cn("hidden sm:inline-flex", TONE_CLASS[status.tone])}
-                      />
                       {showTrack ? (
                         <span className="flex w-4 shrink-0 items-center justify-center sm:w-5">
                           {isTrackable(flight) ? <TrackButton flight={flight} /> : null}
                         </span>
                       ) : null}
+                      <SplitFlapText
+                        value={status.label}
+                        width={W.status}
+                        flipKey={flipKey} className={cn("hidden sm:inline-flex", TONE_CLASS[status.tone])}
+                      />
                     </span>
                   </li>
                   </Fragment>

@@ -20,6 +20,24 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@vibecodeapp" />
   <meta name="twitter:image" content="/og-base.png" />
+
+  <!-- Set the theme before the first paint so the page never flashes white on
+       its way to dark. Dark is the default until the user picks otherwise. -->
+  <script>
+    (function () {
+      var theme = "dark";
+      try {
+        var saved = localStorage.getItem("flesland-theme");
+        if (saved === "light" || saved === "dark") theme = saved;
+      } catch (e) { /* storage disabled — keep the dark default */ }
+      if (theme === "dark") document.documentElement.classList.add("dark");
+    })();
+  </script>
+  <style>
+    /* Matches --background in the .dark theme, so the very first frame the
+       browser paints is already the right colour. */
+    html.dark { background-color: hsl(220 12% 9%); }
+  </style>
 </head>
 
 <body>

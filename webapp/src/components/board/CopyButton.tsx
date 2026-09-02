@@ -36,6 +36,9 @@ export function CopyButton({ getBlocks, label, className }: CopyButtonProps) {
       title={label}
       className={cn(
         "h-7 shrink-0 gap-1 whitespace-nowrap rounded-[2px] border-board/35 bg-transparent px-1.5 font-signage text-[8px] font-medium uppercase tracking-[0.08em] text-board/75 transition-colors hover:border-board hover:bg-board hover:text-flap-ink sm:h-8 sm:gap-1.5 sm:px-2.5 sm:text-[10px] sm:tracking-[0.18em]",
+        // On the dark page the charcoal board colour disappears — invert to the
+        // page foreground so the control keeps the same contrast it has on white.
+        "dark:border-foreground/30 dark:text-foreground/80 dark:hover:border-foreground dark:hover:bg-foreground dark:hover:text-background",
         className
       )}
     >

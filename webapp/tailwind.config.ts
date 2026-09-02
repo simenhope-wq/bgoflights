@@ -68,7 +68,12 @@ export default {
           red: "hsl(var(--flap-red))",
           dim: "hsl(var(--flap-dim))",
         },
-        plate: "hsl(var(--plate))",
+        plate: {
+          DEFAULT: "hsl(var(--plate))",
+          edge: "hsl(var(--plate-edge))",
+          rim: "hsl(var(--plate-rim))",
+          ink: "hsl(var(--plate-ink))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

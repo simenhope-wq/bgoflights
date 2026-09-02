@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import { PlaneLanding, PlaneTakeoff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   boardHeading,
@@ -10,7 +9,7 @@ import {
 } from "@/lib/flights";
 import { ColumnLabel } from "./ColumnLabel";
 import { CopyButton } from "./CopyButton";
-import { EuStars } from "./EuStars";
+import { SectionPlate } from "./SectionPlate";
 import { SplitFlapText } from "./SplitFlapText";
 
 interface PrivateJetSectionProps {
@@ -46,34 +45,18 @@ function JetBoard({
 }) {
   return (
     <section className={stacked ? "-mt-px" : "mt-3 sm:mt-6"}>
-      <div
-        className="flex flex-wrap items-center justify-between gap-2 rounded-t-[3px] border border-b-0 border-board-frame px-3 py-2"
-        style={{
-          background: "hsl(var(--plate))",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          {arriving ? (
-            <PlaneLanding className="h-5 w-5 shrink-0 text-white sm:h-6 sm:w-6" aria-hidden="true" />
-          ) : (
-            <PlaneTakeoff className="h-5 w-5 shrink-0 text-white sm:h-6 sm:w-6" aria-hidden="true" />
-          )}
-          <h2 className="font-signage text-lg font-semibold uppercase tracking-[0.22em] text-white sm:text-xl">
-            {title}
-          </h2>
-          <span className="font-signage text-[10px] uppercase tracking-[0.2em] text-white/75">
-            {loading ? "· · ·" : off ? "ADS-B av" : `${jets.length} fly`}
-          </span>
-        </div>
-        <div className="flex items-center gap-2.5">
+      <SectionPlate
+        title={title}
+        arriving={arriving}
+        note={loading ? "· · ·" : off ? "ADS-B av" : `${jets.length} fly`}
+        actions={
           <CopyButton
             getBlocks={getCopyBlocks}
             label={`Kopier ${title.toLowerCase()}`}
-            className="hidden border-white/50 text-white hover:border-white hover:bg-white hover:text-board sm:inline-flex"
+            className="hidden border-plate-ink/45 text-plate-ink hover:border-plate-ink hover:bg-plate-ink hover:text-plate dark:border-plate-ink/45 dark:text-plate-ink dark:hover:border-plate-ink dark:hover:bg-plate-ink dark:hover:text-plate sm:inline-flex"
           />
-          <EuStars className="h-6 w-6 sm:h-7 sm:w-7" />
-        </div>
-      </div>
+        }
+      />
 
       <div
         className="overflow-x-auto rounded-b-[3px] border border-board-frame px-3 pb-3 pt-2.5 shadow-[0_10px_28px_-18px_rgba(0,0,0,0.65)]"
@@ -83,7 +66,7 @@ function JetBoard({
         }}
       >
         <div className="text-[12px] leading-tight sm:text-[18px]">
-          <div className="flex gap-1 pb-2 text-flap-dim sm:gap-2">
+          <div className="flex gap-1 pb-2 text-flap-ink sm:gap-2">
             <ColumnLabel label="Tid" width={W.time} />
             <ColumnLabel label="Inn" width={W.move} />
             <ColumnLabel label="Kall." width={W.callsign} className="hidden sm:inline-block" />

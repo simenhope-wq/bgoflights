@@ -185,7 +185,7 @@ export function hasLanded(flight: Flight): boolean {
 }
 
 /** How long a landing stays "fresh" on the board before it fades to grey. */
-export const LANDED_FRESH_MS = 60 * 60 * 1000;
+export const LANDED_FRESH_MS = 30 * 60 * 1000;
 
 /**
  * The instant the flight actually operates: its scheduled UTC stamp shifted by

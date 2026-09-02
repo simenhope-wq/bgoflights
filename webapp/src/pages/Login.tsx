@@ -14,9 +14,10 @@ import { api, ApiError } from "@/lib/api";
  * 400-day sliding-expiry cookie that refreshes on every authenticated
  * request, so this screen is normally a one-time thing per device.
  *
- * Styled dark (bg-board-deep + the blue "plate" accent) to match the
- * always-dark split-flap board itself, rather than the light shadcn
- * default — this is the look from the original app, ported over.
+ * Styled dark (bg-board-deep) to match the always-dark split-flap board
+ * itself, with the signage-yellow "plate" accent (see index.css --plate)
+ * on the logo mark and the submit button, echoing the yellow header plates
+ * on the board.
  */
 const Login = () => {
   const queryClient = useQueryClient();
@@ -97,7 +98,7 @@ const Login = () => {
           <Button
             type="submit"
             disabled={submitting || !username || !password}
-            className="mt-1 bg-plate text-white hover:bg-plate/90 font-signage text-[12px] uppercase tracking-[0.14em]"
+            className="mt-1 bg-plate text-plate-ink hover:bg-plate/90 font-signage text-[12px] uppercase tracking-[0.14em]"
           >
             {submitting ? "Logger inn…" : "Logg inn"}
           </Button>

@@ -22,7 +22,7 @@ export function ShiftFilter({ value, onChange, className }: ShiftFilterProps) {
       aria-label="Filtrer på skift"
       className={cn(
         // sm:h-8 matches CopyButton, so the two controls read as one set.
-        "inline-flex shrink-0 items-center rounded-[2px] border border-board/35 p-[2px] sm:h-8",
+        "inline-flex shrink-0 items-center rounded-[2px] border border-board/35 p-[2px] dark:border-foreground/30 sm:h-8",
         className
       )}
     >
@@ -38,8 +38,8 @@ export function ShiftFilter({ value, onChange, className }: ShiftFilterProps) {
             className={cn(
               "flex items-center gap-1 rounded-[1px] px-1.5 py-1 font-signage text-[8px] font-medium uppercase tracking-[0.08em] transition-colors sm:h-full sm:px-2.5 sm:py-0 sm:text-[10px] sm:tracking-[0.18em]",
               active
-                ? "bg-board text-flap-ink"
-                : "text-board/60 hover:bg-board/10 hover:text-board"
+                ? "bg-board text-flap-ink dark:bg-foreground dark:text-background"
+                : "text-board/60 hover:bg-board/10 hover:text-board dark:text-foreground/60 dark:hover:bg-foreground/10 dark:hover:text-foreground"
             )}
           >
             {option.value === "day" ? (
