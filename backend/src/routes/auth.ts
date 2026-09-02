@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { checkCredentials, clearSession, hasValidSession, issueSession } from "../lib/auth";
-import { rateLimit } from "../middleware/rate-limit";
+import { checkCredentials, clearSession, hasValidSession, issueSession } from "../lib/auth.js";
+import { rateLimit } from "../middleware/rate-limit.js";
 
 const authRouter = new Hono();
 

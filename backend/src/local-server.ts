@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { serve } from "@hono/node-server";
-import { app } from "./app";
+import { app } from "./app.js";
 
 // Plain-Node local dev/start entry point. Deliberately NOT named one of
 // Vercel's zero-config Hono filenames (app.ts/index.ts/server.ts) so there's

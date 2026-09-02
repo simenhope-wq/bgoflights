@@ -10,7 +10,7 @@
  */
 import { getSignedCookie, setSignedCookie, deleteCookie } from "hono/cookie";
 import type { Context } from "hono";
-import { env } from "../env";
+import { env } from "../env.js";
 
 export const SESSION_COOKIE = "flesland_session";
 

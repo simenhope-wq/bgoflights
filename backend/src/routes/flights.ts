@@ -11,12 +11,12 @@ import {
   osloToday,
   statusTexts,
   type RawFlight,
-} from "../lib/avinor";
-import { iataIndex, type AirportInfo } from "../lib/opensky";
-import { REGION_REFERENCE, classifyAirport } from "../lib/regions";
-import type { Coverage, Flight, FlightBoard } from "../types";
-import { cached } from "../lib/cache";
-import { requireAuth } from "../middleware/require-auth";
+} from "../lib/avinor.js";
+import { iataIndex, type AirportInfo } from "../lib/opensky.js";
+import { REGION_REFERENCE, classifyAirport } from "../lib/regions.js";
+import type { Coverage, Flight, FlightBoard } from "../types.js";
+import { cached } from "../lib/cache.js";
+import { requireAuth } from "../middleware/require-auth.js";
 
 const flightsRouter = new Hono();
 flightsRouter.use("*", requireAuth);

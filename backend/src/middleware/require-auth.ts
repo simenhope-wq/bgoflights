@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from "hono";
-import { hasValidSession, issueSession } from "../lib/auth";
+import { hasValidSession, issueSession } from "../lib/auth.js";
 
 /**
  * Gates a route behind the shared login cookie, and slides its expiry

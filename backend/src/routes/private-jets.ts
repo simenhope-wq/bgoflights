@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { osloStartOfDay, osloTime, osloToday } from "../lib/avinor";
+import { osloStartOfDay, osloTime, osloToday } from "../lib/avinor.js";
 import {
   BGO_ICAO,
   airportFlights,
@@ -8,11 +8,11 @@ import {
   hasOpenSkyCredentials,
   isNonScheduled,
   type OpenSkyFlight,
-} from "../lib/opensky";
-import { classifyAirport } from "../lib/regions";
-import type { PrivateJet, PrivateJetBoard } from "../types";
-import { cached } from "../lib/cache";
-import { requireAuth } from "../middleware/require-auth";
+} from "../lib/opensky.js";
+import { classifyAirport } from "../lib/regions.js";
+import type { PrivateJet, PrivateJetBoard } from "../types.js";
+import { cached } from "../lib/cache.js";
+import { requireAuth } from "../middleware/require-auth.js";
 
 const privateJetsRouter = new Hono();
 privateJetsRouter.use("*", requireAuth);

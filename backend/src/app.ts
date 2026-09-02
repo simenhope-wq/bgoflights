@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import "./env";
-import { authRouter } from "./routes/auth";
-import { flightsRouter } from "./routes/flights";
-import { privateJetsRouter } from "./routes/private-jets";
+import "./env.js";
+import { authRouter } from "./routes/auth.js";
+import { flightsRouter } from "./routes/flights.js";
+import { privateJetsRouter } from "./routes/private-jets.js";
 import { logger } from "hono/logger";
-import { rateLimit } from "./middleware/rate-limit";
+import { rateLimit } from "./middleware/rate-limit.js";
 
 // The Hono app itself, with no runtime-specific bootstrapping (no dotenv,
 // no @hono/node-server serve() call) so it can be imported by both:
