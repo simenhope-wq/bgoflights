@@ -13,6 +13,10 @@ import { api, ApiError } from "@/lib/api";
  * simple (see backend/src/lib/auth.ts). On success the backend sets a
  * 400-day sliding-expiry cookie that refreshes on every authenticated
  * request, so this screen is normally a one-time thing per device.
+ *
+ * Styled dark (bg-board-deep + the blue "plate" accent) to match the
+ * always-dark split-flap board itself, rather than the light shadcn
+ * default — this is the look from the original app, ported over.
  */
 const Login = () => {
   const queryClient = useQueryClient();
@@ -38,10 +42,10 @@ const Login = () => {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-5">
+    <main className="dark flex min-h-screen items-center justify-center bg-board-deep px-5">
       <div className="w-full max-w-xs">
         <div className="flex flex-col items-center text-center">
-          <FleslandMark className="h-10 w-10 text-primary" />
+          <FleslandMark className="h-10 w-10 text-plate" />
           <h1 className="mt-4 flex justify-center">
             <SplitFlapText
               value="FLESLAND"
@@ -93,7 +97,7 @@ const Login = () => {
           <Button
             type="submit"
             disabled={submitting || !username || !password}
-            className="mt-1 font-signage text-[12px] uppercase tracking-[0.14em]"
+            className="mt-1 bg-plate text-white hover:bg-plate/90 font-signage text-[12px] uppercase tracking-[0.14em]"
           >
             {submitting ? "Logger inn…" : "Logg inn"}
           </Button>
