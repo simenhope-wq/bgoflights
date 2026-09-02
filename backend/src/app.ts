@@ -17,13 +17,18 @@ import { rateLimit } from "./middleware/rate-limit.js";
 export const app = new Hono();
 
 // CORS middleware - validates origin against allowlist.
-// Localhost for dev, plus the deployed frontend(s): the temporary Render
-// static site used for testing, and grense.xyz once DNS points there (added
-// up front so connecting the domain later doesn't need another deploy).
+// Localhost for dev, plus every deployed frontend this app has lived at:
+// the old temporary Render static site, the Vercel production domain
+// (grense.vercel.app) and any Vercel preview deployment for this project
+// (grense-<hash>-hopemedia1.vercel.app), and grense.xyz once DNS points
+// there (added up front so connecting the domain later doesn't need
+// another deploy).
 const allowed = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
   /^https:\/\/grense\.onrender\.com$/,
+  /^https:\/\/grense\.vercel\.app$/,
+  /^https:\/\/grense-[a-z0-9-]+-hopemedia1\.vercel\.app$/,
   /^https:\/\/(www\.)?grense\.xyz$/,
 ];
 
