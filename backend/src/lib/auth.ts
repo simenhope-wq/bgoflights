@@ -58,6 +58,17 @@ export function clearSession(c: Context): void {
   });
 }
 
+/**
+ * Username is matched case-insensitively — mobile keyboards auto-capitalize
+ * the first letter of a text field by default, which silently turned a
+ * correctly-typed username into a rejected login on phones (see
+ * Login.tsx's autoCapitalize="none", which stops that at the source; this
+ * is the belt-and-suspenders backend half). Password stays case-sensitive —
+ * it's the actual secret, and nothing auto-alters it the same way.
+ */
 export function checkCredentials(username: string, password: string): boolean {
-  return username === env.SITE_USERNAME && password === env.SITE_PASSWORD;
+  return (
+    username.trim().toLowerCase() === env.SITE_USERNAME.trim().toLowerCase() &&
+    password === env.SITE_PASSWORD
+  );
 }
