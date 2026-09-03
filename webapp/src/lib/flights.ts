@@ -243,6 +243,27 @@ const NIGHT_END_MINUTES = 4 * 60;
 /** Anything at or after this belongs to the next day's day shift, not tonight. */
 const isNightTail = (mins: number) => mins < NIGHT_END_MINUTES;
 
+/**
+ * Which shift covers this instant in Bergen local time — used to default the
+ * shift filter to whichever one is actually running when the board is
+ * opened, rather than always showing everything. Mirrors isInDayShift /
+ * isInNightShift's own boundaries: the small hours (00:00-04:00) are the
+ * *previous* night's tail, not the new day's day shift, same as everywhere
+ * else in this file.
+ */
+export function currentShiftInOslo(now: number = Date.now()): Shift {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: OSLO_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(now));
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0") % 24;
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  const mins = hour * 60 + minute;
+  return mins >= NIGHT_START_MINUTES || mins < NIGHT_END_MINUTES ? "night" : "day";
+}
+
 export function isInDayShift(flight: Flight | PrivateJet): boolean {
   // A next-day movement is only ever the tail of the previous night.
   if (flight.nextDay) return false;

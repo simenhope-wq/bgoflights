@@ -16,6 +16,7 @@ import {
   boardForShift,
   buildBoardBlocks,
   buildSectionBlocks,
+  currentShiftInOslo,
   emptyCoverage,
   formatLongDate,
   jetsForShift,
@@ -38,7 +39,10 @@ const emptyBoard = (date: string): FlightBoard => ({
 
 const Index = () => {
   const [date, setDate] = useState<string>(() => todayInOslo());
-  const [shiftFilter, setShiftFilter] = useState<Shift | null>(null);
+  // Defaults to whichever shift is actually running when the board is
+  // opened (day before the 15:00 handover, night from then on) rather than
+  // showing everything — a manual pick from here still overrides it.
+  const [shiftFilter, setShiftFilter] = useState<Shift | null>(() => currentShiftInOslo());
   // The backend caches each board for up to 60s, so a repeat request on
   // localhost can resolve in a handful of milliseconds — too fast for the
   // spin animation to ever actually paint, so pressing the button looked
