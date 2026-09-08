@@ -162,3 +162,21 @@ export const PrivateJetBoardSchema = z.object({
 });
 
 export type PrivateJetBoard = z.infer<typeof PrivateJetBoardSchema>;
+
+/**
+ * Current conditions at Bergen Airport Flesland (BGO), from MET Norway's free
+ * Locationforecast API — no key needed, just a descriptive User-Agent (see
+ * routes/weather.ts). Deliberately minimal: this powers a tiny icon + number
+ * next to the page title, not a forecast panel.
+ */
+export const WeatherSchema = z.object({
+  tempC: z.number(),
+  windMs: z.number(),
+  /** MET Norway symbol code, e.g. "cloudy", "rainshowers_day" — see lib/weather.ts on the frontend for how this maps to an icon */
+  symbol: z.string(),
+  /** When this was fetched from MET Norway, ISO instant */
+  updatedAt: z.string(),
+});
+
+export type Weather = z.infer<typeof WeatherSchema>;
+

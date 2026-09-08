@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/board/CopyButton";
 import { DateStepper } from "@/components/board/DateStepper";
 import { FlightSection } from "@/components/board/FlightSection";
@@ -8,6 +9,7 @@ import { OsloClock } from "@/components/board/OsloClock";
 import { PrivateJetSection } from "@/components/board/PrivateJetSection";
 import { SplitFlapText } from "@/components/board/SplitFlapText";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { WeatherBadge } from "@/components/board/WeatherBadge";
 import { useFlightBoard } from "@/hooks/use-flight-board";
 import { useNow } from "@/hooks/use-now";
 import { usePrivateJets } from "@/hooks/use-private-jets";
@@ -58,6 +60,11 @@ const Index = () => {
     setShiftFilter(next);
     setShowTerritorial(false);
   };
+  // Board left open on a wall-mounted screen rather than someone's laptop —
+  // deliberately low-key (see refreshButton/territorialToggle for the
+  // controls people actually use every day) since this is a rare, one-off
+  // flip rather than something to reach for often.
+  const [kioskMode, setKioskMode] = useState(false);
   // The backend caches each board for up to 60s, so a repeat request on
   // localhost can resolve in a handful of milliseconds — too fast for the
   // spin animation to ever actually paint, so pressing the button looked
@@ -148,8 +155,30 @@ const Index = () => {
     </Button>
   );
 
+  // Deliberately faint until hovered/active — a rarely-used switch, not a
+  // control meant to compete with refresh/theme for attention.
+  const kioskToggle = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      aria-label="Kioskmodus (større tekst)"
+      title="Kioskmodus (større tekst)"
+      aria-pressed={kioskMode}
+      onClick={() => setKioskMode((v) => !v)}
+      className={cn(
+        "h-7 w-7 shrink-0 rounded-[2px] opacity-40 transition-opacity hover:opacity-100 sm:h-8 sm:w-8",
+        kioskMode
+          ? "text-foreground opacity-100"
+          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+      )}
+    >
+      <Maximize2 className="h-3.5 w-3.5" />
+    </Button>
+  );
+
   return (
-    <main className="min-h-screen bg-background">
+    <main className={cn("min-h-screen bg-background", kioskMode && "kiosk-mode")}>
       <div className="border-b border-rule">
         <div className="relative mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-2 font-signage text-[9px] uppercase tracking-[0.24em] text-muted-foreground sm:px-8 sm:text-[10px]">
           <span>BGO · Schengen-grensetrafikk</span>
@@ -170,14 +199,17 @@ const Index = () => {
       <div className="mx-auto max-w-4xl px-5 pb-24 pt-3 sm:px-8 sm:pt-4">
         <header className="flex flex-col items-center text-center">
           {/* The name spelled out on real flaps, like the board below */}
-          <h1 className="flex justify-center">
-            <SplitFlapText
-              value="FLESLAND"
-              width={8}
-              className="flap-title text-[2.1rem] text-flap-ink sm:text-5xl"
-              ariaLabel="Flesland"
-            />
-          </h1>
+          <div className="flex items-center justify-center gap-3">
+            <h1 className="flex justify-center">
+              <SplitFlapText
+                value="FLESLAND"
+                width={8}
+                className="flap-title text-[2.1rem] text-flap-ink sm:text-5xl"
+                ariaLabel="Flesland"
+              />
+            </h1>
+            <WeatherBadge />
+          </div>
           <div className="hidden sm:mt-4 sm:block">
             <DateStepper date={date} onShift={shift} onToday={() => setDate(todayInOslo())} />
           </div>
@@ -191,6 +223,7 @@ const Index = () => {
             <div className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-nowrap items-center gap-1">
               <ThemeToggle />
               {refreshButton}
+              {kioskToggle}
             </div>
           </div>
           {/* Stacked on the phone — the date line and the shift filter side by
@@ -232,6 +265,7 @@ const Index = () => {
                 getBlocks={() => buildBoardBlocks(nightBoard, nightJets, "night")}
                 label="Kopier kveldskift"
               />
+              {kioskToggle}
             </div>
           </div>
         </div>

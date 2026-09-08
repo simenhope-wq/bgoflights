@@ -242,3 +242,14 @@
     animation: none !important;
   }
 }
+
+/*
+ * Kiosk mode — for a board left open on a wall-mounted screen rather than
+ * someone's laptop. `zoom` (not transform: scale) is used deliberately: it
+ * reflows layout at the new size instead of just stretching pixels, so
+ * nothing overflows its container the way a CSS transform would.
+ */
+.kiosk-mode {
+  zoom: 1.3;
+}
+

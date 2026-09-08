@@ -4,6 +4,7 @@ import "./env.js";
 import { authRouter } from "./routes/auth.js";
 import { flightsRouter } from "./routes/flights.js";
 import { privateJetsRouter } from "./routes/private-jets.js";
+import { weatherRouter } from "./routes/weather.js";
 import { logger } from "hono/logger";
 import { rateLimit } from "./middleware/rate-limit.js";
 
@@ -60,6 +61,7 @@ app.route("/api/auth", authRouter);
 // (each router calls .use("*", requireAuth) on itself).
 app.route("/api/flights", flightsRouter);
 app.route("/api/private-jets", privateJetsRouter);
+app.route("/api/weather", weatherRouter);
 
 app.onError((err, c) => {
   console.error("Unhandled error:", err);
