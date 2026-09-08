@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, Globe2, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/board/CopyButton";
 import { DateStepper } from "@/components/board/DateStepper";
 import { FlightSection } from "@/components/board/FlightSection";
@@ -51,6 +50,12 @@ const Index = () => {
   // a single Ankomst-Territorial box, unfiltered by shift or day-shift math
   // — the whole day, as asked.
   const [showTerritorial, setShowTerritorial] = useState(false);
+  // Picking a shift always takes over from Territorial directly — no
+  // separate step to "turn Territorial off" first.
+  const selectShift = (next: Shift | null) => {
+    setShiftFilter(next);
+    setShowTerritorial(false);
+  };
   // The backend caches each board for up to 60s, so a repeat request on
   // localhost can resolve in a handful of milliseconds — too fast for the
   // spin animation to ever actually paint, so pressing the button looked
@@ -70,6 +75,9 @@ const Index = () => {
 
   const rawBoard = data ?? emptyBoard(date);
   const showingRequestedDate = rawBoard.date === date;
+  // Defensive: an older deployed backend that predates this field would
+  // otherwise hand FlightSection an undefined array and crash the page.
+  const territorialFlights = rawBoard.territorial ?? [];
 
   const board = boardForShift(rawBoard, nextDay.data, shiftFilter);
   const shownJets = jetsForShift(jets.data, nextJets.data, shiftFilter);
@@ -131,26 +139,6 @@ const Index = () => {
     </Button>
   );
 
-  // Same visual language as ShiftFilter's segmented buttons, but standalone —
-  // Territorial is a separate view mode, not another shift option.
-  const territorialToggle = (
-    <button
-      type="button"
-      title="Ankomster fra andre Schengen-land, hele dagen"
-      aria-pressed={showTerritorial}
-      onClick={() => setShowTerritorial((v) => !v)}
-      className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-[2px] border border-board/35 px-1.5 py-1 font-signage text-[8px] font-medium uppercase tracking-[0.08em] transition-colors dark:border-foreground/30 sm:h-8 sm:px-2.5 sm:py-0 sm:text-[10px] sm:tracking-[0.18em]",
-        showTerritorial
-          ? "bg-board text-flap-ink dark:bg-foreground dark:text-background"
-          : "text-board/60 hover:bg-board/10 hover:text-board dark:text-foreground/60 dark:hover:bg-foreground/10 dark:hover:text-foreground"
-      )}
-    >
-      <Globe2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-      Territorial
-    </button>
-  );
-
   return (
     <main className="min-h-screen bg-background">
       <div className="border-b border-rule">
@@ -203,18 +191,24 @@ const Index = () => {
               {formatLongDate(date)}
               {updatedAt && showingRequestedDate ? ` · oppdatert ${updatedAt}` : ""}
             </p>
-            <div className="flex items-center gap-1.5">
-              <ShiftFilter value={shiftFilter} onChange={setShiftFilter} />
-              {territorialToggle}
-            </div>
+            <ShiftFilter
+              value={shiftFilter}
+              onChange={selectShift}
+              territorialActive={showTerritorial}
+              onToggleTerritorial={() => setShowTerritorial((v) => !v)}
+            />
           </div>
 
           {/* Desktop: three equal columns, so the date sits dead centre with the
               shift filter and the copy buttons balanced either side of it. */}
           <div className="hidden sm:grid sm:grid-cols-3 sm:items-center sm:gap-3">
-            <div className="flex items-center justify-start gap-1.5">
-              <ShiftFilter value={shiftFilter} onChange={setShiftFilter} />
-              {territorialToggle}
+            <div className="flex justify-start">
+              <ShiftFilter
+                value={shiftFilter}
+                onChange={selectShift}
+                territorialActive={showTerritorial}
+                onToggleTerritorial={() => setShowTerritorial((v) => !v)}
+              />
             </div>
             {/* Empty middle column — the date now lives in the top strip. */}
             <span aria-hidden="true" />
@@ -258,10 +252,10 @@ const Index = () => {
             <FlightSection
               kind="arrivals"
               title="Ankomst Territorial"
-              flights={rawBoard.territorial}
+              flights={territorialFlights}
               loading={isLoading}
               flipKey={`${rawBoard.date}-territorial`}
-              getCopyBlocks={() => buildTerritorialBlocks(rawBoard)}
+              getCopyBlocks={() => buildTerritorialBlocks(territorialFlights)}
             />
           ) : (
             <>

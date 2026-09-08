@@ -471,8 +471,8 @@ export function buildSectionBlocks(
 }
 
 /** Copy blocks for the Territorial box — Schengen-international arrivals, not shift-filtered. */
-export function buildTerritorialBlocks(board: FlightBoard): CopyBlock[] {
-  return sectionBlocks("ANKOMST TERRITORIAL", "FRA", board.territorial);
+export function buildTerritorialBlocks(flights: Flight[]): CopyBlock[] {
+  return sectionBlocks("ANKOMST TERRITORIAL", "FRA", flights);
 }
 
 /** First line of every copy — the airport and the day the board is showing. */
