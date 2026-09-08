@@ -9,6 +9,7 @@ import { PrivateJetSection } from "@/components/board/PrivateJetSection";
 import { SplitFlapText } from "@/components/board/SplitFlapText";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useFlightBoard } from "@/hooks/use-flight-board";
+import { useNow } from "@/hooks/use-now";
 import { usePrivateJets } from "@/hooks/use-private-jets";
 import { BorderCheckPanel } from "@/components/board/BorderCheckPanel";
 import { ShiftFilter } from "@/components/board/ShiftFilter";
@@ -20,6 +21,7 @@ import {
   currentShiftInOslo,
   emptyCoverage,
   formatLongDate,
+  isStaleForTerritorial,
   jetsForShift,
   shiftDate,
   todayInOslo,
@@ -75,9 +77,16 @@ const Index = () => {
 
   const rawBoard = data ?? emptyBoard(date);
   const showingRequestedDate = rawBoard.date === date;
+  // Ticks every minute so a flight actually drops off Territorial once it
+  // crosses the two-hour-since-landing mark, not just on the next refetch.
+  const now = useNow();
   // Defensive: an older deployed backend that predates this field would
   // otherwise hand FlightSection an undefined array and crash the page.
-  const territorialFlights = rawBoard.territorial ?? [];
+  // Territorial also drops (not just fades) anything landed 2+ hours ago —
+  // unlike the main board, it should read as who is actually still around.
+  const territorialFlights = (rawBoard.territorial ?? []).filter(
+    (f) => !isStaleForTerritorial(f, now)
+  );
 
   const board = boardForShift(rawBoard, nextDay.data, shiftFilter);
   const shownJets = jetsForShift(jets.data, nextJets.data, shiftFilter);

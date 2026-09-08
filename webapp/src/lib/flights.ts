@@ -211,6 +211,21 @@ export function landedLongAgo(flight: Flight, now: number): boolean {
   return at !== null && now - at >= LANDED_FRESH_MS;
 }
 
+/**
+ * How long a landed arrival stays on the Territorial board before being
+ * dropped entirely — unlike the main board (which just fades old landings to
+ * grey, see LANDED_FRESH_MS above), Territorial removes the row outright so
+ * the list stays a live picture of who is actually still around.
+ */
+export const TERRITORIAL_STALE_MS = 2 * 60 * 60 * 1000;
+
+/** Landed long enough ago that Territorial should drop the row entirely. */
+export function isStaleForTerritorial(flight: Flight, now: number): boolean {
+  if (!hasLanded(flight)) return false;
+  const at = actualInstant(flight);
+  return at !== null && now - at >= TERRITORIAL_STALE_MS;
+}
+
 const minutesOf = (time: string): number | null => {
   const match = /^(\d{2}):(\d{2})$/.exec(time);
   return match ? Number(match[1]) * 60 + Number(match[2]) : null;
