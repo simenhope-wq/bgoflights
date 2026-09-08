@@ -271,9 +271,18 @@ async function buildBoard(date: string): Promise<FlightBoard> {
     /**
      * Everything crossing the Schengen border — see checkBorder() for the two
      * independent tests and why unknown airports are kept rather than dropped.
+     *
+     * `collectTerritorial` additionally gathers the opposite case, for the
+     * arrivals feed only: flights Avinor already has in hand that do NOT
+     * cross the Schengen border and are NOT purely domestic Norway (i.e. a
+     * resolved country other than "NO") — an arrival from elsewhere in
+     * Schengen. No extra Avinor call needed; these are flights `select()`
+     * already sees and would otherwise just discard. Powers the
+     * "Territorial" view.
      */
-    const select = (flights: RawFlight[]) => {
+    const select = (flights: RawFlight[], collectTerritorial: boolean) => {
       const out: Flight[] = [];
+      const territorial: Flight[] = [];
       for (const f of flights) {
         const t = new Date(f.scheduleTime).getTime();
         if (t < start.getTime() || t >= end.getTime()) continue;
@@ -306,7 +315,12 @@ async function buildBoard(date: string): Promise<FlightBoard> {
           });
         }
 
-        if (!border.crossing) continue;
+        if (!border.crossing) {
+          if (collectTerritorial && border.country && border.country !== "NO") {
+            territorial.push(toFlight(f, airports, airlines, statuses, operationalStatuses, border, now));
+          }
+          continue;
+        }
         if (border.country) {
           const seen = tally.countries.get(border.country) ?? { eu: border.eu, flights: 0 };
           seen.flights += 1;
@@ -315,11 +329,17 @@ async function buildBoard(date: string): Promise<FlightBoard> {
         out.push(toFlight(f, airports, airlines, statuses, operationalStatuses, border, now));
       }
       tally.included += out.length;
-      return out.sort((a, b) => a.scheduleTime.localeCompare(b.scheduleTime));
+      return {
+        included: out.sort((a, b) => a.scheduleTime.localeCompare(b.scheduleTime)),
+        territorial: territorial.sort((a, b) => a.scheduleTime.localeCompare(b.scheduleTime)),
+      };
     };
 
-    const arrivals = select(arrFeed.flights);
-    const departures = select(depFeed.flights);
+    const arrivalsResult = select(arrFeed.flights, true);
+    const departuresResult = select(depFeed.flights, false);
+    const arrivals = arrivalsResult.included;
+    const departures = departuresResult.included;
+    const territorial = arrivalsResult.territorial;
 
     const board: FlightBoard = {
       date,
@@ -327,6 +347,7 @@ async function buildBoard(date: string): Promise<FlightBoard> {
       airportName: "Bergen Airport Flesland",
       arrivals,
       departures,
+      territorial,
       lastUpdate: arrFeed.lastUpdate,
       notice,
       coverage: toCoverage(tally),

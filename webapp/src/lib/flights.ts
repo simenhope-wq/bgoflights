@@ -79,6 +79,13 @@ export interface FlightBoard {
   airportName: string;
   arrivals: Flight[];
   departures: Flight[];
+  /**
+   * Arrivals from elsewhere in Schengen (e.g. Copenhagen, Amsterdam) that do
+   * NOT cross the Schengen border, excluding purely domestic Norwegian
+   * routes. No passport check, but still an international arrival onto
+   * Norwegian soil. Powers the "Territorial" view.
+   */
+  territorial: Flight[];
   lastUpdate: string;
   notice: string | null;
   coverage: Coverage;
@@ -461,6 +468,11 @@ export function buildSectionBlocks(
   return kind === "arrivals"
     ? sectionBlocks("ANKOMST", "FRA", filtered)
     : sectionBlocks("AVGANG", "TIL", filtered);
+}
+
+/** Copy blocks for the Territorial box — Schengen-international arrivals, not shift-filtered. */
+export function buildTerritorialBlocks(board: FlightBoard): CopyBlock[] {
+  return sectionBlocks("ANKOMST TERRITORIAL", "FRA", board.territorial);
 }
 
 /** First line of every copy — the airport and the day the board is showing. */

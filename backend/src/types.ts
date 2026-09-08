@@ -102,6 +102,14 @@ export const FlightBoardSchema = z.object({
   airportName: z.string(),
   arrivals: z.array(FlightSchema),
   departures: z.array(FlightSchema),
+  /**
+   * Arrivals from elsewhere in Schengen (e.g. Copenhagen, Amsterdam) — the
+   * opposite of the main board: flights that do NOT cross the Schengen
+   * border, excluding purely domestic Norwegian routes. No passport check,
+   * but still an international arrival onto Norwegian soil. Powers the
+   * "Territorial" view.
+   */
+  territorial: z.array(FlightSchema),
   /** When Avinor last refreshed the feed, ISO instant */
   lastUpdate: z.string(),
   /** Set when the requested date lies outside the range Avinor publishes */

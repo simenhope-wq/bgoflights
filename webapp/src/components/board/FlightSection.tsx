@@ -26,6 +26,8 @@ interface FlightSectionProps {
   /** Changing this re-flips the whole section (the selected date). */
   flipKey: string;
   getCopyBlocks: (shift?: "day" | "night") => CopyBlock[];
+  /** Overrides the kind-based title ("Ankomst"/"Avgang") — e.g. "Ankomst Territorial". */
+  title?: string;
 }
 
 /** Flap counts per column — fixed, like the real hardware.
@@ -49,11 +51,12 @@ export function FlightSection({
   loading,
   flipKey,
   getCopyBlocks,
+  title: titleOverride,
 }: FlightSectionProps) {
   // Ticks every minute so a landing fades once it passes the hour mark.
   const now = useNow();
   const isArrivals = kind === "arrivals";
-  const title = isArrivals ? "Ankomst" : "Avgang";
+  const title = titleOverride ?? (isArrivals ? "Ankomst" : "Avgang");
   const timeLabel = isArrivals ? "ETA" : "ETD";
   const placeLabel = isArrivals ? "Fra" : "Til";
   // The Flightradar24 slot is only worth reserving when something in this
