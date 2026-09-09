@@ -198,17 +198,26 @@ const Index = () => {
       {/* Wide enough for the 18px flaps to lay out at full column width. */}
       <div className="mx-auto max-w-4xl px-5 pb-24 pt-3 sm:px-8 sm:pt-4">
         <header className="flex flex-col items-center text-center">
-          {/* The name spelled out on real flaps, like the board below */}
-          <div className="flex items-center justify-center gap-3">
-            <h1 className="flex justify-center">
-              <SplitFlapText
-                value="FLESLAND"
-                width={8}
-                className="flap-title text-[2.1rem] text-flap-ink sm:text-5xl"
-                ariaLabel="Flesland"
-              />
-            </h1>
-            <WeatherBadge />
+          {/* The name spelled out on real flaps, like the board below.
+              The inner wrapper is sized to the title alone (the badge is
+              absolutely positioned, so it takes no space in the flow) — that
+              keeps FLESLAND dead centre on the page no matter how wide the
+              weather badge ends up, with the badge riding just off its
+              right edge instead of shifting the centred group over. */}
+          <div className="flex justify-center">
+            <div className="relative inline-flex">
+              <h1 className="flex justify-center">
+                <SplitFlapText
+                  value="FLESLAND"
+                  width={8}
+                  className="flap-title text-[2.1rem] text-flap-ink sm:text-5xl"
+                  ariaLabel="Flesland"
+                />
+              </h1>
+              <div className="absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap">
+                <WeatherBadge />
+              </div>
+            </div>
           </div>
           <div className="hidden sm:mt-4 sm:block">
             <DateStepper date={date} onShift={shift} onToday={() => setDate(todayInOslo())} />
