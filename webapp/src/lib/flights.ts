@@ -289,23 +289,51 @@ export function currentShiftInOslo(now: number = Date.now()): Shift {
 export function isInDayShift(flight: Flight | PrivateJet): boolean {
   // A next-day movement is only ever the tail of the previous night.
   if (flight.nextDay) return false;
-  const mins = minutesOf(shiftTimeOf(flight));
-  return mins !== null && mins >= DAY_START_MINUTES && mins < DAY_END_MINUTES;
+  return timesOf(flight).some((mins) => mins >= DAY_START_MINUTES && mins < DAY_END_MINUTES);
 }
 
 export function isInNightShift(flight: Flight | PrivateJet): boolean {
-  const mins = minutesOf(shiftTimeOf(flight));
-  if (mins === null) return false;
-  return flight.nextDay ? isNightTail(mins) : mins >= NIGHT_START_MINUTES;
+  return timesOf(flight).some((mins) =>
+    flight.nextDay ? isNightTail(mins) : mins >= NIGHT_START_MINUTES
+  );
 }
 
 /** Flights carry `scheduled`, jets carry `time`. */
 const shiftTimeOf = (item: Flight | PrivateJet): string =>
   "scheduled" in item ? item.scheduled : item.time;
 
-/** Orders a night shift correctly across midnight: 16:00 … 23:59, 00:00 … 03:59. */
+/**
+ * A flight's current best estimate of its own time — Avinor updates
+ * `estimated` as delays come in (and to the real time once it's landed or
+ * departed), so once it differs from `scheduled` it's the more useful of the
+ * two. Jets have no separate estimate (ADS-B only reports the one observed
+ * time), so this is just `shiftTimeOf` for them.
+ */
+const bestKnownTimeOf = (item: Flight | PrivateJet): string =>
+  "estimated" in item && item.estimated ? item.estimated : shiftTimeOf(item);
+
+/**
+ * Every distinct minute-of-day a flight should be judged by for shift
+ * purposes: its original schedule, plus — when it has slipped enough to
+ * differ — its current best estimate. A flight that straddles the day/night
+ * boundary this way (scheduled for one shift, now running late enough to
+ * land on the other's watch) matches both shifts' windows, so it stays
+ * visible on the shift that was expecting it AND appears on the shift that
+ * will actually handle it, rather than moving from one to the other.
+ */
+const timesOf = (item: Flight | PrivateJet): number[] => {
+  const candidates = [minutesOf(shiftTimeOf(item)), minutesOf(bestKnownTimeOf(item))];
+  return Array.from(new Set(candidates.filter((m): m is number => m !== null)));
+};
+
+/**
+ * Orders a night shift correctly across midnight: 16:00 … 23:59, 00:00 …
+ * 03:59. Sorted by the current best estimate rather than the original
+ * schedule, so a delayed flight lands in the list around when it's actually
+ * expected rather than where it was originally due.
+ */
 export function shiftSortKey(item: Flight | PrivateJet): number {
-  const mins = minutesOf(shiftTimeOf(item)) ?? 0;
+  const mins = minutesOf(bestKnownTimeOf(item)) ?? 0;
   return item.nextDay ? mins + 1440 : mins;
 }
 
