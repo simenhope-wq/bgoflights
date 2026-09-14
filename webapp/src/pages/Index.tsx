@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/board/CopyButton";
 import { DateStepper } from "@/components/board/DateStepper";
 import { FlightSection } from "@/components/board/FlightSection";
+import { NextControlPanel } from "@/components/board/NextControlPanel";
 import { OsloClock } from "@/components/board/OsloClock";
 import { PrivateJetSection } from "@/components/board/PrivateJetSection";
 import { SplitFlapText } from "@/components/board/SplitFlapText";
@@ -180,16 +181,25 @@ const Index = () => {
   return (
     <main className={cn("min-h-screen bg-background", kioskMode && "kiosk-mode")}>
       <div className="border-b border-rule">
-        <div className="relative mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-2 font-signage text-[9px] uppercase tracking-[0.24em] text-muted-foreground sm:px-8 sm:text-[10px]">
-          <span className="flex items-center gap-2">
-            <span>BGO · Schengen-grensetrafikk</span>
+        <div className="relative mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-1.5 font-signage text-[9px] uppercase tracking-[0.24em] text-muted-foreground sm:px-8 sm:py-2 sm:text-[10px]">
+          <span className="flex min-w-0 items-center gap-2">
+            {/* Desktop has its own centred date (below) with room to spare, so
+                this corner stays the "BGO..." label there. On the phone that
+                date has nowhere else to live once the sticky bar's own copy
+                of it was dropped as a duplicate, so it takes this corner
+                instead — same text, just relocated rather than shown twice. */}
+            <span className="hidden sm:inline">BGO · Schengen-grensetrafikk</span>
+            <span className="truncate whitespace-nowrap tracking-[0.16em] text-foreground sm:hidden">
+              {formatLongDate(date)}
+              {updatedAt && showingRequestedDate ? ` · oppdatert ${updatedAt}` : ""}
+            </span>
           </span>
           {/* Absolutely centred so it stays dead middle whatever sits either side. */}
           <span className="pointer-events-none absolute left-1/2 hidden -translate-x-1/2 whitespace-nowrap tracking-[0.16em] text-foreground sm:block">
             {formatLongDate(date)}
             {updatedAt && showingRequestedDate ? ` · oppdatert ${updatedAt}` : ""}
           </span>
-          <span className="flex items-center gap-2">
+          <span className="flex shrink-0 items-center gap-2">
             <span className="hidden sm:inline">Lokal tid (Oslo)</span>
             <span className="hidden h-3 w-px bg-rule sm:inline-block" />
             <OsloClock className="text-foreground" />
@@ -198,35 +208,48 @@ const Index = () => {
       </div>
 
       {/* Wide enough for the 18px flaps to lay out at full column width. */}
-      <div className="mx-auto max-w-4xl px-5 pb-24 pt-3 sm:px-8 sm:pt-4">
+      <div className="mx-auto max-w-4xl px-5 pb-24 pt-2 sm:px-8 sm:pt-4">
         <header className="flex flex-col items-center text-center">
-          {/* The name spelled out on real flaps, like the board below.
-              The inner wrapper is sized to the title alone (the badge is
-              absolutely positioned, so it takes no space in the flow) — that
-              keeps FLESLAND dead centre on the page no matter how wide the
-              weather badge ends up, with the badge riding just off its
-              right edge instead of shifting the centred group over. */}
-          <div className="flex justify-center">
-            <div className="relative inline-flex">
-              <h1 className="flex justify-center">
-                <SplitFlapText
-                  value="FLESLAND"
-                  width={8}
-                  className="flap-title text-[2.1rem] text-flap-ink sm:text-5xl"
-                  ariaLabel="Flesland"
-                />
-              </h1>
-              <div className="absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap">
-                <WeatherBadge />
+          {/* Three equal columns (same idiom as the sticky control bar
+              further down) so Neste kontroll sits flush at the page's own
+              left margin — matching "BGO..." above it — rather than
+              crowding the title, while the empty third column balances it
+              out so FLESLAND still lands dead centre. The weather badge
+              stays riding just off the title's own right edge (absolutely
+              positioned, out of flow) rather than living in that third
+              column, so its width never has to match column one's. Desktop
+              only — Neste kontroll hides itself on narrow screens. */}
+          <div className="grid w-full grid-cols-1 items-center gap-2 sm:grid-cols-3">
+            <div className="hidden sm:flex sm:justify-start">
+              <NextControlPanel
+                dayBoard={dayBoard}
+                nightBoard={nightBoard}
+                shift={shiftFilter}
+              />
+            </div>
+            <div className="flex justify-center">
+              <div className="relative inline-flex">
+                <h1 className="flex justify-center">
+                  <SplitFlapText
+                    value="FLESLAND"
+                    width={8}
+                    className="flap-title text-[2.1rem] text-flap-ink sm:text-5xl"
+                    ariaLabel="Flesland"
+                  />
+                </h1>
+                <div className="absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap">
+                  <WeatherBadge />
+                </div>
               </div>
             </div>
+            <span aria-hidden="true" className="hidden sm:block" />
           </div>
           <div className="hidden sm:mt-4 sm:block">
             <DateStepper date={date} onShift={shift} onToday={() => setDate(todayInOslo())} />
           </div>
         </header>
 
-        <div className="sticky top-0 z-10 -mx-5 mt-1.5 border-b border-foreground/15 bg-background/95 px-5 py-2 backdrop-blur sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3">
+        <div className="sticky top-0 z-10 -mx-5 mt-1 border-b border-foreground/15 bg-background/95 px-5 py-2 backdrop-blur sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3">
           {/* Phone: the stepper is centred on the page and the refresh button
               floats at the right, level with it. */}
           <div className="relative flex items-center justify-center gap-2 sm:hidden">
@@ -235,13 +258,10 @@ const Index = () => {
               {refreshButton}
             </div>
           </div>
-          {/* Stacked on the phone — the date line and the shift filter side by
-              side are wider than a narrow screen. */}
-          <div className="mt-2 flex flex-col items-center gap-1.5 sm:hidden">
-            <p className="text-center font-signage text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              {formatLongDate(date)}
-              {updatedAt && showingRequestedDate ? ` · oppdatert ${updatedAt}` : ""}
-            </p>
+          {/* The date used to repeat here on the phone (stacked above the
+              shift filter, since side by side is wider than a narrow
+              screen) — now shown once, top-left, instead of twice. */}
+          <div className="mt-1.5 flex justify-center sm:hidden">
             <ShiftFilter
               value={shiftFilter}
               onChange={selectShift}
@@ -277,6 +297,19 @@ const Index = () => {
               {kioskToggle}
             </div>
           </div>
+        </div>
+
+        {/* Mobile only — desktop already has Neste kontroll beside FLESLAND
+            (see the header grid above). Sits below the shift filter and
+            above the first yellow section, matching where it was asked
+            for. */}
+        <div className="mt-3 flex justify-center sm:hidden">
+          <NextControlPanel
+            dayBoard={dayBoard}
+            nightBoard={nightBoard}
+            shift={shiftFilter}
+            layout="row"
+          />
         </div>
 
         {isError ? (
