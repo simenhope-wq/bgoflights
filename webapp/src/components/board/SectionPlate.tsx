@@ -43,7 +43,15 @@ export function SectionPlate({ title, arriving, note, actions }: SectionPlatePro
           {note}
         </span>
       </div>
-      {actions ? <div className="flex items-center gap-2.5">{actions}</div> : null}
+      <div className="flex items-center gap-2.5">
+        {actions}
+        <img
+          src="/icons/passport.png"
+          alt=""
+          aria-hidden="true"
+          className="h-5 w-5 shrink-0 opacity-80 sm:h-6 sm:w-6"
+        />
+      </div>
     </div>
   );
 }
