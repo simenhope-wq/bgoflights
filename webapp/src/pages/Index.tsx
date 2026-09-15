@@ -12,7 +12,6 @@ import { playChime } from "@/lib/chime";
 import { OsloClock } from "@/components/board/OsloClock";
 import { PrivateJetSection } from "@/components/board/PrivateJetSection";
 import { SplitFlapText } from "@/components/board/SplitFlapText";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { WeatherBadge } from "@/components/board/WeatherBadge";
 import { useFlightBoard } from "@/hooks/use-flight-board";
 import { useNow } from "@/hooks/use-now";
@@ -257,9 +256,22 @@ const Index = () => {
   );
 
   return (
-    <main className={cn("min-h-screen bg-background", kioskMode && "kiosk-mode")}>
-      <div className="border-b border-rule">
-        <div className="relative mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-1.5 font-signage text-[9px] uppercase tracking-[0.24em] text-muted-foreground sm:px-8 sm:py-2 sm:text-[10px]">
+    <main
+      className={cn("min-h-screen bg-background bg-cover bg-center bg-fixed", kioskMode && "kiosk-mode")}
+      // Quick visual try-out of a photo background behind the board, per
+      // Simen's request — the linear-gradient layer tints it with the same
+      // --background color the page already uses (so the board itself stays
+      // just as legible), and the photo shows through *more* the *lower*
+      // this alpha is (0 = photo at full strength, 1 = fully hidden behind
+      // solid background color). Easy to remove entirely (drop the style
+      // prop) or tune (adjust this one number) further.
+      style={{
+        backgroundImage:
+          "linear-gradient(hsl(var(--background) / 0.35), hsl(var(--background) / 0.35)), url(/backgrounds/hangar-night.jpg)",
+      }}
+    >
+      <div className="sticky top-0 z-20 border-b border-rule bg-black">
+        <div className="relative mx-auto flex h-8 max-w-4xl items-center justify-between gap-3 px-5 font-signage text-[9px] uppercase tracking-[0.24em] text-muted-foreground sm:h-9 sm:px-8 sm:text-[10px]">
           <span className="flex min-w-0 items-center gap-2">
             {/* Desktop has its own centred date (below) with room to spare, so
                 this corner stays the "BGO..." label there. On the phone that
@@ -341,7 +353,19 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="sticky top-0 z-10 -mx-5 mt-1 border-b border-foreground/15 bg-background/95 px-5 py-2 backdrop-blur sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3">
+        <div
+          className="sticky top-[33px] z-10 -mx-5 mt-1 border-b border-foreground/15 bg-cover bg-center bg-fixed px-5 py-2 sm:top-[37px] sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3"
+          // Same photo + tint as <main>, positioned the same way
+          // (bg-fixed anchors it to the viewport, not this element) — so
+          // wherever this bar is stuck, its background lines up pixel for
+          // pixel with the page behind it instead of looking like a floating
+          // box, while still fully covering the flight rows that scroll up
+          // underneath it (no more text bleeding through/overlapping it).
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--background) / 0.35), hsl(var(--background) / 0.35)), url(/backgrounds/hangar-night.jpg)",
+          }}
+        >
           {/* Phone: the stepper is centred on the page and the refresh button
               floats at the right, level with it. */}
           <div className="relative flex items-center justify-center gap-2 sm:hidden">
@@ -376,7 +400,6 @@ const Index = () => {
             {/* Empty middle column — the date now lives in the top strip. */}
             <span aria-hidden="true" />
             <div className="flex items-center justify-end gap-1.5">
-              <ThemeToggle />
               {refreshButton}
               <CopyButton
                 getBlocks={() => buildBoardBlocks(dayBoard, dayJets, "day")}

@@ -43,7 +43,16 @@ const Login = () => {
   };
 
   return (
-    <main className="dark flex min-h-screen items-center justify-center bg-board-deep px-5">
+    <main
+      className="dark flex min-h-screen items-center justify-center bg-board-deep bg-cover bg-center bg-fixed px-5"
+      // Same hangar photo as the board itself, tinted with this page's own
+      // bg-board-deep tone (rather than --background) so it matches the
+      // login screen's own dark styling instead of the board page's.
+      style={{
+        backgroundImage:
+          "linear-gradient(hsl(var(--board-deep) / 0.35), hsl(var(--board-deep) / 0.35)), url(/backgrounds/hangar-night.jpg)",
+      }}
+    >
       <div className="w-full max-w-xs">
         <div className="flex flex-col items-center text-center">
           <FleslandMark className="h-10 w-10 text-plate" />

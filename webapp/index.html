@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="no" class="dark">
 
 <head>
   <meta charset="UTF-8" />
@@ -20,18 +20,9 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://grense.xyz/og-image.png" />
 
-  <!-- Set the theme before the first paint so the page never flashes white on
-       its way to dark. Dark is the default until the user picks otherwise. -->
-  <script>
-    (function () {
-      var theme = "dark";
-      try {
-        var saved = localStorage.getItem("flesland-theme");
-        if (saved === "light" || saved === "dark") theme = saved;
-      } catch (e) { /* storage disabled — keep the dark default */ }
-      if (theme === "dark") document.documentElement.classList.add("dark");
-    })();
-  </script>
+  <!-- Night mode only — no light theme, no toggle, no per-visitor choice —
+       so the "dark" class is just static markup on <html> above rather than
+       something set at runtime. -->
   <style>
     /* Matches --background in the .dark theme, so the very first frame the
        browser paints is already the right colour. */

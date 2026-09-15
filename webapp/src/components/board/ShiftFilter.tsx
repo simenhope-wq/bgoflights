@@ -36,7 +36,9 @@ export function ShiftFilter({
       aria-label="Filtrer på skift"
       className={cn(
         // sm:h-8 matches CopyButton, so the two controls read as one set.
-        "inline-flex shrink-0 items-center rounded-[2px] border border-board/35 p-[2px] dark:border-foreground/30 sm:h-8",
+        // No group-level border/box — each button (and the active pill fill)
+        // already reads clearly on its own against the page background.
+        "inline-flex shrink-0 items-center rounded-[2px] sm:h-8",
         className
       )}
     >
