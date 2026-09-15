@@ -16,10 +16,33 @@ import { SplitFlapText } from "./SplitFlapText";
 const CONTROL_OPENS_BEFORE_MS = 60 * 60_000;
 /**
  * Once control has opened, the UT countdown stops sinking further than this —
- * it sits red at "-00:15:00" until the flight actually departs, rather than
- * counting arbitrarily far into the negative.
+ * fifteen minutes past control-open it stops showing digits altogether and
+ * reads "KONTROLL" (red) instead, until the flight is actually handled (see
+ * isUtDone below) rather than one flight handing off to the next the instant
+ * the floor is hit.
  */
 const OVERDUE_FLOOR_MS = -15 * 60_000;
+
+/**
+ * How long a just-landed arrival keeps showing "KONTROLL" on the INN side
+ * before the countdown moves on to the next incoming flight's ETA.
+ */
+const INN_CONTROL_PHASE_MS = 10 * 60_000;
+
+/** Avinor's own gate-stage text for a departure whose gate has closed. */
+function isGateClosed(flight: Flight): boolean {
+  return flight.operationalStatus.toUpperCase() === "GATE CLOSED";
+}
+
+/**
+ * A departure is done with UT — no longer the flight the countdown is
+ * tracking — once it has actually left, or once its gate has closed
+ * (whichever Avinor reports first; a flight can depart without ever
+ * showing "Gate closed" if that particular update never comes through).
+ */
+function isUtDone(flight: Flight): boolean {
+  return hasDeparted(flight) || isGateClosed(flight);
+}
 
 /** The soonest not-yet-done, not-cancelled flight in a list, by its current best-known time. */
 function nextPending(flights: Flight[], isDone: (f: Flight) => boolean): Flight | null {
@@ -29,6 +52,26 @@ function nextPending(flights: Flight[], isDone: (f: Flight) => boolean): Flight 
     if (isCancelled(f) || isDone(f)) continue;
     const at = actualInstant(f);
     if (at !== null && at < bestAt) {
+      best = f;
+      bestAt = at;
+    }
+  }
+  return best;
+}
+
+/**
+ * The most recently landed, not-cancelled arrival that is still inside its
+ * post-landing "KONTROLL" window (see INN_CONTROL_PHASE_MS). If two flights
+ * land close together, the later landing is what's shown — a fresh control
+ * just started, superseding the one still winding down.
+ */
+function activeLandedControl(flights: Flight[], now: number): Flight | null {
+  let best: Flight | null = null;
+  let bestAt = -Infinity;
+  for (const f of flights) {
+    if (isCancelled(f) || !hasLanded(f)) continue;
+    const at = actualInstant(f);
+    if (at !== null && at > bestAt && now - at < INN_CONTROL_PHASE_MS) {
       best = f;
       bestAt = at;
     }
@@ -62,10 +105,10 @@ function ControlRow({
   text: string;
   overdue: boolean;
 }) {
-  // Always the same flap row, whether it's counting down or reads "FERDIG"
-  // — one component, one line-height, so nothing about the row's own size
-  // changes when it flips between the two (that mismatch used to nudge the
-  // whole page by a few pixels on every shift switch).
+  // Always the same flap row, whether it's counting down, reads "KONTROLL",
+  // or reads "FERDIG" — one component, one line-height, so nothing about
+  // the row's own size changes when it flips between them (that mismatch
+  // used to nudge the whole page by a few pixels on every shift switch).
   return (
     <div className="flex items-center gap-2">
       {/* The page's header wraps everything in text-center for FLESLAND's
@@ -78,9 +121,9 @@ function ControlRow({
         {label}
       </span>
       {/* Width tracks the text itself (no fixed reservation) — "FERDIG" is
-          6 cells, a normal countdown is 8, and an overdue one grows to 9
-          for its "-", rather than every row always paying for a sign
-          character it usually isn't using. */}
+          6 cells, "KONTROLL" is 8, a normal countdown is 8, and an overdue
+          one grows to 9 for its "-", rather than every row always paying
+          for a sign character it usually isn't using. */}
       <SplitFlapText
         value={text}
         width={text.length}
@@ -100,12 +143,17 @@ function ControlRow({
  * built-in breakpoint of its own):
  * - UT: the next outgoing flight's control-open time (departure minus one
  *   hour, per BGO procedure). Once that opens, the row turns red and counts
- *   into the negative, capped at -00:15:00 until the flight actually departs
- *   (see OVERDUE_FLOOR_MS) rather than one flight handing off to the next
- *   the instant the cap is hit.
+ *   into the negative; fifteen minutes past that (OVERDUE_FLOOR_MS) it stops
+ *   showing digits and reads "KONTROLL" instead, staying on that flight
+ *   until it actually departs or its gate closes (isUtDone) — whichever
+ *   Avinor reports first — at which point the countdown hands off to the
+ *   next departure.
  * - INN: the next incoming flight's current ETA, floored at zero once it's
- *   due (no negative/overdue state — it simply switches to the next
- *   arrival once this one lands).
+ *   due. Once it lands, the row reads "KONTROLL" (red, same word and tone
+ *   as UT's) for ten minutes (INN_CONTROL_PHASE_MS) before switching over
+ *   to the next arrival's countdown — passport control on a landed flight
+ *   isn't instantaneous, so the row keeps saying so for a bit rather than
+ *   silently jumping straight to the next flight's ETA.
  * Follows the shift currently selected on screen (`shift`, i.e. the
  * Dagskift/Kveldskift toggle) so it always matches whatever board is
  * actually showing below it — switch to Kveldskift mid-afternoon and the
@@ -139,28 +187,30 @@ export function NextControlPanel({
   const now = useNow(1_000);
   const board = (shift ?? currentShiftInOslo(now)) === "day" ? dayBoard : nightBoard;
 
-  const departure = nextPending(board.departures, hasDeparted);
+  const departure = nextPending(board.departures, isUtDone);
   const departureAt = departure ? actualInstant(departure) : null;
   const rawUtMs = departureAt !== null ? departureAt - CONTROL_OPENS_BEFORE_MS - now : null;
   const utOverdue = rawUtMs !== null && rawUtMs <= 0;
+  const utControlPhase = rawUtMs !== null && rawUtMs <= OVERDUE_FLOOR_MS;
   const utMs = rawUtMs !== null ? Math.max(rawUtMs, OVERDUE_FLOOR_MS) : null;
 
-  const arrival = nextPending(board.arrivals, hasLanded);
+  const landedControl = activeLandedControl(board.arrivals, now);
+  const arrival = landedControl ? null : nextPending(board.arrivals, hasLanded);
   const arrivalAt = arrival ? actualInstant(arrival) : null;
   const innMs = arrivalAt !== null ? Math.max(arrivalAt - now, 0) : null;
 
   const utRow = (
     <ControlRow
       label="UT"
-      text={departure === null ? "FERDIG" : formatCountdown(utMs ?? 0)}
+      text={departure === null ? "FERDIG" : utControlPhase ? "KONTROLL" : formatCountdown(utMs ?? 0)}
       overdue={departure !== null && utOverdue}
     />
   );
   const innRow = (
     <ControlRow
       label="INN"
-      text={arrival === null ? "FERDIG" : formatCountdown(innMs ?? 0)}
-      overdue={false}
+      text={landedControl ? "KONTROLL" : arrival === null ? "FERDIG" : formatCountdown(innMs ?? 0)}
+      overdue={landedControl !== null}
     />
   );
 
