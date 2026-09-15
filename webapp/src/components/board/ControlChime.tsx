@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNow } from "@/hooks/use-now";
+import { playChime } from "@/lib/chime";
 import {
   actualInstant,
   currentShiftInOslo,
@@ -14,23 +15,6 @@ import {
   isUtDone,
   nextPending,
 } from "./NextControlPanel";
-
-const CHIME_URL = "/sounds/airplane-chime.wav";
-
-function playChime() {
-  try {
-    // A fresh Audio instance per play (rather than one shared/reused
-    // element) so an UT and an INN chime landing in the same second don't
-    // have to fight over one playback position.
-    void new Audio(CHIME_URL).play().catch(() => {
-      // Browsers block autoplay before any user gesture has happened on the
-      // page — nothing useful to do about that here, the countdown itself
-      // still shows the amber warning either way.
-    });
-  } catch {
-    // A missing/broken audio element should never break the board.
-  }
-}
 
 /**
  * Plays the "five minutes to go" chime for whichever flight NextControlPanel
@@ -49,10 +33,19 @@ export function ControlChime({
   dayBoard,
   nightBoard,
   shift,
+  muted,
 }: {
   dayBoard: FlightBoard;
   nightBoard: FlightBoard;
   shift: Shift | null;
+  /**
+   * While true, a flight entering its five-minute window is never marked as
+   * "already chimed" — only the actual playback is skipped. So unmuting
+   * mid-window immediately plays the real chime for whichever flight is
+   * currently in it, rather than that flight having silently missed its
+   * window forever.
+   */
+  muted: boolean;
 }) {
   const now = useNow(1_000);
   const board = (shift ?? currentShiftInOslo(now)) === "day" ? dayBoard : nightBoard;
@@ -84,10 +77,11 @@ export function ControlChime({
       rawUtMs > 0 &&
       rawUtMs <= SOON_THRESHOLD_MS
     ) {
+      if (muted) return;
       utChimedFor.current = departure.id;
       playChime();
     }
-  }, [departure, rawUtMs]);
+  }, [departure, rawUtMs, muted]);
 
   useEffect(() => {
     if (!arrival) {
@@ -95,10 +89,11 @@ export function ControlChime({
       return;
     }
     if (innChimedFor.current !== arrival.id && rawInnMs !== null && rawInnMs <= SOON_THRESHOLD_MS) {
+      if (muted) return;
       innChimedFor.current = arrival.id;
       playChime();
     }
-  }, [arrival, rawInnMs]);
+  }, [arrival, rawInnMs, muted]);
 
   return null;
 }

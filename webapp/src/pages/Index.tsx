@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
+import { AlertCircle, Maximize2, RefreshCw, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/board/CopyButton";
@@ -7,6 +7,7 @@ import { DateStepper } from "@/components/board/DateStepper";
 import { FlightSection } from "@/components/board/FlightSection";
 import { ControlChime } from "@/components/board/ControlChime";
 import { NextControlPanel } from "@/components/board/NextControlPanel";
+import { playChime } from "@/lib/chime";
 import { OsloClock } from "@/components/board/OsloClock";
 import { PrivateJetSection } from "@/components/board/PrivateJetSection";
 import { SplitFlapText } from "@/components/board/SplitFlapText";
@@ -67,6 +68,37 @@ const Index = () => {
   // controls people actually use every day) since this is a rare, one-off
   // flip rather than something to reach for often.
   const [kioskMode, setKioskMode] = useState(false);
+  // Neste kontroll's five-minute chime (see ControlChime) — muted by
+  // default (a board nobody has touched yet shouldn't start beeping on its
+  // own), and persisted from there so a kiosk screen or a laptop remembers
+  // whatever a person actually chose, in either direction, across reloads.
+  const [muted, setMuted] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem("bgoflights-muted");
+      return stored === null ? true : stored === "1";
+    } catch {
+      return true;
+    }
+  });
+  const toggleMuted = () => {
+    setMuted((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("bgoflights-muted", next ? "1" : "0");
+      } catch {
+        // Private browsing etc. — falls back to in-memory only for this tab.
+      }
+      // Unmuting plays a confirmation chime right here, synchronously in
+      // the click handler — not left to ControlChime's useEffect, which
+      // only fires it if a flight happens to be inside its five-minute
+      // window at that exact moment (and which browsers can silently
+      // block anyway, since by the time an effect runs it's a render
+      // removed from the actual click). This way unmuting always audibly
+      // confirms sound is working, on a guaranteed real user gesture.
+      if (prev) playChime();
+      return next;
+    });
+  };
   // The backend caches each board for up to 60s, so a repeat request on
   // localhost can resolve in a handful of milliseconds — too fast for the
   // spin animation to ever actually paint, so pressing the button looked
@@ -179,6 +211,28 @@ const Index = () => {
     </Button>
   );
 
+  // Mutes the Neste kontroll chime (ControlChime) without touching the
+  // amber color/flash — those stay purely visual either way.
+  const muteToggle = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      aria-label={muted ? "Slå på lyd for neste kontroll" : "Demp lyd for neste kontroll"}
+      title={muted ? "Slå på lyd for neste kontroll" : "Demp lyd for neste kontroll"}
+      aria-pressed={muted}
+      onClick={toggleMuted}
+      className={cn(
+        "h-7 w-7 shrink-0 rounded-[2px] transition-opacity sm:h-8 sm:w-8",
+        muted
+          ? "text-foreground opacity-100"
+          : "text-muted-foreground opacity-40 hover:bg-secondary hover:text-foreground hover:opacity-100"
+      )}
+    >
+      {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+    </Button>
+  );
+
   return (
     <main className={cn("min-h-screen bg-background", kioskMode && "kiosk-mode")}>
       <div className="border-b border-rule">
@@ -219,7 +273,9 @@ const Index = () => {
               stays riding just off the title's own right edge (absolutely
               positioned, out of flow) rather than living in that third
               column, so its width never has to match column one's. Desktop
-              only — Neste kontroll hides itself on narrow screens. */}
+              only — Neste kontroll hides itself on narrow screens. The
+              third column carries the mute toggle for its chime, sitting
+              top-right directly under the Lokal tid clock above. */}
           <div className="grid w-full grid-cols-1 items-center gap-2 sm:grid-cols-3">
             <div className="hidden sm:flex sm:justify-start">
               <NextControlPanel
@@ -243,7 +299,7 @@ const Index = () => {
                 </div>
               </div>
             </div>
-            <span aria-hidden="true" className="hidden sm:block" />
+            <div className="hidden sm:flex sm:justify-end">{muteToggle}</div>
           </div>
           <div className="hidden sm:mt-4 sm:block">
             <DateStepper date={date} onShift={shift} onToday={() => setDate(todayInOslo())} />
@@ -316,7 +372,7 @@ const Index = () => {
         {/* Sound only — mounted once regardless of screen size, unlike the
             two NextControlPanel copies above (desktop/mobile), so the
             five-minute chime never plays twice for the same flight. */}
-        <ControlChime dayBoard={dayBoard} nightBoard={nightBoard} shift={shiftFilter} />
+        <ControlChime dayBoard={dayBoard} nightBoard={nightBoard} shift={shiftFilter} muted={muted} />
 
         {isError ? (
           <div className="mt-6 flex items-start gap-2.5 border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
