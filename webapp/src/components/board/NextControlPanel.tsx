@@ -116,10 +116,15 @@ function ControlRow({
   label,
   text,
   tone,
+  flashing = false,
 }: {
   label: string;
   text: string;
   tone: RowTone;
+  /** Blinks the countdown itself (not the "UT"/"INN" label) — used for the
+   *  five-minute amber run-up, on top of the color change, so it catches
+   *  the eye even from across the room. */
+  flashing?: boolean;
 }) {
   // Always the same flap row, whether it's counting down, reads "KONTROLL",
   // or reads "FERDIG" — one component, one line-height, so nothing about
@@ -144,7 +149,7 @@ function ControlRow({
         value={text}
         width={text.length}
         flipKey={text}
-        className={cn("flap-title text-[15px]", TONE_CLASS[tone])}
+        className={cn("flap-title text-[15px]", TONE_CLASS[tone], flashing && "flap-flashing")}
         ariaLabel={`${label} ${text}`}
       />
     </div>
@@ -216,6 +221,10 @@ export function NextControlPanel({
   const utControlPhase = rawUtMs !== null && rawUtMs <= OVERDUE_FLOOR_MS;
   const utMs = rawUtMs !== null ? Math.max(rawUtMs, OVERDUE_FLOOR_MS) : null;
   const utTone: RowTone = departure === null ? "green" : utOverdue ? "red" : utSoon ? "amber" : "green";
+  // Flashes for the same window it's amber in — UT's amber window is
+  // already exactly "5 minutes to control-open", so no separate bound is
+  // needed here the way INN needs one below.
+  const utFlashing = utSoon;
 
   const landedControl = activeLandedControl(board.arrivals, now);
   const arrival = landedControl ? null : nextPending(board.arrivals, hasLanded);
@@ -223,12 +232,18 @@ export function NextControlPanel({
   const innMs = arrivalAt !== null ? Math.max(arrivalAt - now, 0) : null;
   const innSoon = arrivalAt !== null && arrivalAt - now <= SOON_THRESHOLD_MS;
   const innTone: RowTone = landedControl ? "red" : innSoon ? "amber" : "green";
+  // INN stays amber a little past zero too (until the flight actually
+  // lands and flips to red KONTROLL — see innSoon above), but the flashing
+  // itself is only for the run-up: 5 minutes down to 0, not indefinitely
+  // while it sits at "00:00:00" waiting for a landing update.
+  const innFlashing = innSoon && arrivalAt !== null && arrivalAt - now > 0;
 
   const utRow = (
     <ControlRow
       label="UT"
       text={departure === null ? "FERDIG" : utControlPhase ? "KONTROLL" : formatCountdown(utMs ?? 0)}
       tone={utTone}
+      flashing={utFlashing}
     />
   );
   const innRow = (
@@ -236,6 +251,7 @@ export function NextControlPanel({
       label="INN"
       text={landedControl ? "KONTROLL" : arrival === null ? "FERDIG" : formatCountdown(innMs ?? 0)}
       tone={innTone}
+      flashing={innFlashing}
     />
   );
 
