@@ -256,20 +256,23 @@ const Index = () => {
   );
 
   return (
-    <main
-      className={cn("min-h-screen bg-background bg-cover bg-center bg-fixed", kioskMode && "kiosk-mode")}
-      // Quick visual try-out of a photo background behind the board, per
-      // Simen's request — the linear-gradient layer tints it with the same
-      // --background color the page already uses (so the board itself stays
-      // just as legible), and the photo shows through *more* the *lower*
-      // this alpha is (0 = photo at full strength, 1 = fully hidden behind
-      // solid background color). Easy to remove entirely (drop the style
-      // prop) or tune (adjust this one number) further.
-      style={{
-        backgroundImage:
-          "linear-gradient(hsl(var(--background) / 0.35), hsl(var(--background) / 0.35)), url(/backgrounds/hangar-night.jpg)",
-      }}
-    >
+    <main className={cn("min-h-screen bg-background", kioskMode && "kiosk-mode")}>
+      {/* One true `position: fixed` backdrop, painted once behind everything,
+          instead of `background-attachment: fixed` on <main> itself (which
+          used to fight with the sticky bars below — Safari mis-renders a
+          fixed background that sits on or inside a sticky-positioned
+          element, which is what caused the whole page to wash out). Every
+          bar below can now just tint over this one shared layer rather than
+          drawing its own copy of the photo, so nothing has to be sticky
+          *and* fixed-background at the same time. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--background) / 0.35), hsl(var(--background) / 0.35)), url(/backgrounds/hangar-night.jpg)",
+        }}
+      />
       <div className="sticky top-0 z-20 border-b border-rule bg-black">
         <div className="relative mx-auto flex h-8 max-w-4xl items-center justify-between gap-3 px-5 font-signage text-[9px] uppercase tracking-[0.24em] text-muted-foreground sm:h-9 sm:px-8 sm:text-[10px]">
           <span className="flex min-w-0 items-center gap-2">
@@ -353,7 +356,7 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="sticky top-[33px] z-10 -mx-5 mt-1 border-b border-foreground/15 bg-black px-5 py-2 sm:top-[37px] sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3">
+        <div className="sticky top-[33px] z-10 -mx-5 mt-1 border-b border-foreground/15 bg-background/55 px-5 py-2 sm:top-[37px] sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3">
           {/* Phone: the stepper is centred on the page and the refresh button
               floats at the right, level with it. */}
           <div className="relative flex items-center justify-center gap-2 sm:hidden">
