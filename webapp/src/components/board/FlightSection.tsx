@@ -7,6 +7,7 @@ import {
   hasDeparted,
   isCancelled,
   isDelayed,
+  isGateClosed,
   isNewTime,
   isTrackable,
   landedLongAgo,
@@ -130,10 +131,10 @@ export function FlightSection({
               {flights.map((flight, index) => {
                 const cancelled = isCancelled(flight);
                 const delayed = isDelayed(flight);
-                // Flights that have left, or landed over an hour ago, fade to
-                // grey — the row is history, not news.
+                // Flights that have left, whose gate has closed, or landed
+                // over an hour ago, fade to grey — the row is history, not news.
                 const departed = hasDeparted(flight);
-                const spent = cancelled || departed || landedLongAgo(flight, now);
+                const spent = cancelled || departed || isGateClosed(flight) || landedLongAgo(flight, now);
                 const delay = index * ROW_TICKS;
                 const status = flightStatus(flight, now, kind);
 

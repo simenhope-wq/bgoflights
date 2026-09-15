@@ -191,6 +191,11 @@ export function hasLanded(flight: Flight): boolean {
   return flight.statusCode === "A";
 }
 
+/** Avinor's own gate-stage text for a departure whose gate has closed. */
+export function isGateClosed(flight: Flight): boolean {
+  return flight.operationalStatus.toUpperCase() === "GATE CLOSED";
+}
+
 /** How long a landing stays "fresh" on the board before it fades to grey. */
 export const LANDED_FRESH_MS = 30 * 60 * 1000;
 

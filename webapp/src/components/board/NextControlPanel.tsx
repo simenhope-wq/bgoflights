@@ -6,6 +6,7 @@ import {
   hasDeparted,
   hasLanded,
   isCancelled,
+  isGateClosed,
   type Flight,
   type FlightBoard,
   type Shift,
@@ -28,11 +29,6 @@ const OVERDUE_FLOOR_MS = -15 * 60_000;
  * before the countdown moves on to the next incoming flight's ETA.
  */
 const INN_CONTROL_PHASE_MS = 10 * 60_000;
-
-/** Avinor's own gate-stage text for a departure whose gate has closed. */
-function isGateClosed(flight: Flight): boolean {
-  return flight.operationalStatus.toUpperCase() === "GATE CLOSED";
-}
 
 /**
  * A departure is done with UT — no longer the flight the countdown is
