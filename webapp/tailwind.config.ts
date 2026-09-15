@@ -65,6 +65,7 @@ export default {
           seam: "hsl(var(--flap-seam))",
           ink: "hsl(var(--flap-ink))",
           amber: "hsl(var(--flap-amber))",
+          green: "hsl(var(--flap-green))",
           red: "hsl(var(--flap-red))",
           dim: "hsl(var(--flap-dim))",
         },

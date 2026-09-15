@@ -6,6 +6,7 @@ import { CopyButton } from "@/components/board/CopyButton";
 import { DateStepper } from "@/components/board/DateStepper";
 import { FlightSection } from "@/components/board/FlightSection";
 import { ControlChime } from "@/components/board/ControlChime";
+import { FeedStatusBadge, type FeedStatus } from "@/components/board/FeedStatusBadge";
 import { NextControlPanel } from "@/components/board/NextControlPanel";
 import { playChime } from "@/lib/chime";
 import { OsloClock } from "@/components/board/OsloClock";
@@ -162,6 +163,28 @@ const Index = () => {
       }).format(new Date(rawBoard.lastUpdate))
     : null;
 
+  // Only today's board actually auto-polls Avinor (see useFlightBoard), so
+  // "is the feed healthy" only means something here — a past or future
+  // date is a one-off fetch with nothing ongoing to vouch for.
+  const viewingToday = date === todayInOslo();
+  const feedAgeMs = rawBoard.lastUpdate ? now - new Date(rawBoard.lastUpdate).getTime() : null;
+  // Judged on staleness rather than the raw isError flag: a failed refetch
+  // already shows up as the board's age creeping past a normal 60s cycle,
+  // and a single transient blip that resolves before anyone would notice
+  // shouldn't flip the dot on its own. isError only breaks the tie before
+  // any data has loaded at all (first paint vs. a first attempt that's
+  // already failed).
+  const feedStatus: FeedStatus =
+    feedAgeMs === null
+      ? isError
+        ? "down"
+        : "unstable"
+      : feedAgeMs > 5 * 60_000
+      ? "down"
+      : feedAgeMs > 2 * 60_000
+      ? "unstable"
+      : "ok";
+
   const handleRefresh = () => {
     setManualRefreshing(true);
     Promise.all([
@@ -247,12 +270,24 @@ const Index = () => {
             <span className="truncate whitespace-nowrap tracking-[0.16em] text-foreground sm:hidden">
               {formatLongDate(date)}
               {updatedAt && showingRequestedDate ? ` · oppdatert ${updatedAt}` : ""}
+              {viewingToday && showingRequestedDate ? (
+                <>
+                  {" · "}
+                  <FeedStatusBadge status={feedStatus} />
+                </>
+              ) : null}
             </span>
           </span>
           {/* Absolutely centred so it stays dead middle whatever sits either side. */}
           <span className="pointer-events-none absolute left-1/2 hidden -translate-x-1/2 whitespace-nowrap tracking-[0.16em] text-foreground sm:block">
             {formatLongDate(date)}
             {updatedAt && showingRequestedDate ? ` · oppdatert ${updatedAt}` : ""}
+            {viewingToday && showingRequestedDate ? (
+              <>
+                {" · "}
+                <FeedStatusBadge status={feedStatus} />
+              </>
+            ) : null}
           </span>
           <span className="flex shrink-0 items-center gap-2">
             <span className="hidden sm:inline">Lokal tid (Oslo)</span>
