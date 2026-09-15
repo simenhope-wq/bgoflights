@@ -353,19 +353,7 @@ const Index = () => {
           </div>
         </header>
 
-        <div
-          className="sticky top-[33px] z-10 -mx-5 mt-1 border-b border-foreground/15 bg-cover bg-center bg-fixed px-5 py-2 sm:top-[37px] sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3"
-          // Same photo + tint as <main>, positioned the same way
-          // (bg-fixed anchors it to the viewport, not this element) — so
-          // wherever this bar is stuck, its background lines up pixel for
-          // pixel with the page behind it instead of looking like a floating
-          // box, while still fully covering the flight rows that scroll up
-          // underneath it (no more text bleeding through/overlapping it).
-          style={{
-            backgroundImage:
-              "linear-gradient(hsl(var(--background) / 0.35), hsl(var(--background) / 0.35)), url(/backgrounds/hangar-night.jpg)",
-          }}
-        >
+        <div className="sticky top-[33px] z-10 -mx-5 mt-1 border-b border-foreground/15 bg-black px-5 py-2 sm:top-[37px] sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3">
           {/* Phone: the stepper is centred on the page and the refresh button
               floats at the right, level with it. */}
           <div className="relative flex items-center justify-center gap-2 sm:hidden">
