@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/board/CopyButton";
 import { DateStepper } from "@/components/board/DateStepper";
 import { FlightSection } from "@/components/board/FlightSection";
+import { ControlChime } from "@/components/board/ControlChime";
 import { NextControlPanel } from "@/components/board/NextControlPanel";
 import { OsloClock } from "@/components/board/OsloClock";
 import { PrivateJetSection } from "@/components/board/PrivateJetSection";
@@ -311,6 +312,11 @@ const Index = () => {
             layout="row"
           />
         </div>
+
+        {/* Sound only — mounted once regardless of screen size, unlike the
+            two NextControlPanel copies above (desktop/mobile), so the
+            five-minute chime never plays twice for the same flight. */}
+        <ControlChime dayBoard={dayBoard} nightBoard={nightBoard} shift={shiftFilter} />
 
         {isError ? (
           <div className="mt-6 flex items-start gap-2.5 border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">

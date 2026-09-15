@@ -14,7 +14,7 @@ import {
 import { SplitFlapText } from "./SplitFlapText";
 
 /** Passport control opens this long before an outgoing flight's departure. */
-const CONTROL_OPENS_BEFORE_MS = 60 * 60_000;
+export const CONTROL_OPENS_BEFORE_MS = 60 * 60_000;
 /**
  * Once control has opened, the UT countdown stops sinking further than this —
  * fifteen minutes past control-open it stops showing digits altogether and
@@ -22,13 +22,21 @@ const CONTROL_OPENS_BEFORE_MS = 60 * 60_000;
  * isUtDone below) rather than one flight handing off to the next the instant
  * the floor is hit.
  */
-const OVERDUE_FLOOR_MS = -15 * 60_000;
+export const OVERDUE_FLOOR_MS = -15 * 60_000;
 
 /**
  * How long a just-landed arrival keeps showing "KONTROLL" on the INN side
  * before the countdown moves on to the next incoming flight's ETA.
  */
-const INN_CONTROL_PHASE_MS = 10 * 60_000;
+export const INN_CONTROL_PHASE_MS = 10 * 60_000;
+
+/**
+ * Both rows turn amber inside this window before their target instant —
+ * control-open for UT, ETA for INN — as a "coming up soon" cue, and
+ * ControlChime (a separate, singly-mounted component — see that file for
+ * why) plays the chime the moment either one first crosses into it.
+ */
+export const SOON_THRESHOLD_MS = 5 * 60_000;
 
 /**
  * A departure is done with UT — no longer the flight the countdown is
@@ -36,12 +44,16 @@ const INN_CONTROL_PHASE_MS = 10 * 60_000;
  * (whichever Avinor reports first; a flight can depart without ever
  * showing "Gate closed" if that particular update never comes through).
  */
-function isUtDone(flight: Flight): boolean {
+export function isUtDone(flight: Flight): boolean {
   return hasDeparted(flight) || isGateClosed(flight);
 }
 
-/** The soonest not-yet-done, not-cancelled flight in a list, by its current best-known time. */
-function nextPending(flights: Flight[], isDone: (f: Flight) => boolean): Flight | null {
+/**
+ * The soonest not-yet-done, not-cancelled flight in a list, by its current
+ * best-known time. Exported so ControlChime can track the exact same flight
+ * this panel is displaying, rather than re-deriving it slightly differently.
+ */
+export function nextPending(flights: Flight[], isDone: (f: Flight) => boolean): Flight | null {
   let best: Flight | null = null;
   let bestAt = Infinity;
   for (const f of flights) {
@@ -61,7 +73,7 @@ function nextPending(flights: Flight[], isDone: (f: Flight) => boolean): Flight 
  * land close together, the later landing is what's shown — a fresh control
  * just started, superseding the one still winding down.
  */
-function activeLandedControl(flights: Flight[], now: number): Flight | null {
+export function activeLandedControl(flights: Flight[], now: number): Flight | null {
   let best: Flight | null = null;
   let bestAt = -Infinity;
   for (const f of flights) {
@@ -92,14 +104,22 @@ function formatCountdown(ms: number): string {
   return ms < 0 ? `-${clock}` : clock;
 }
 
+type RowTone = "green" | "amber" | "red";
+
+const TONE_CLASS: Record<RowTone, string> = {
+  green: "text-flap-green",
+  amber: "text-flap-amber",
+  red: "text-flap-red",
+};
+
 function ControlRow({
   label,
   text,
-  overdue,
+  tone,
 }: {
   label: string;
   text: string;
-  overdue: boolean;
+  tone: RowTone;
 }) {
   // Always the same flap row, whether it's counting down, reads "KONTROLL",
   // or reads "FERDIG" — one component, one line-height, so nothing about
@@ -124,7 +144,7 @@ function ControlRow({
         value={text}
         width={text.length}
         flipKey={text}
-        className={cn("flap-title text-[15px]", overdue ? "text-flap-red" : "text-flap-green")}
+        className={cn("flap-title text-[15px]", TONE_CLASS[tone])}
         ariaLabel={`${label} ${text}`}
       />
     </div>
@@ -138,18 +158,23 @@ function ControlRow({
  * site controls visibility/layout around it; this component has no
  * built-in breakpoint of its own):
  * - UT: the next outgoing flight's control-open time (departure minus one
- *   hour, per BGO procedure). Once that opens, the row turns red and counts
- *   into the negative; fifteen minutes past that (OVERDUE_FLOOR_MS) it stops
+ *   hour, per BGO procedure). It turns amber inside the last five minutes
+ *   before that (SOON_THRESHOLD_MS), then red once it opens, counting into
+ *   the negative; fifteen minutes past that (OVERDUE_FLOOR_MS) it stops
  *   showing digits and reads "KONTROLL" instead, staying on that flight
  *   until it actually departs or its gate closes (isUtDone) — whichever
  *   Avinor reports first — at which point the countdown hands off to the
  *   next departure.
  * - INN: the next incoming flight's current ETA, floored at zero once it's
- *   due. Once it lands, the row reads "KONTROLL" (red, same word and tone
- *   as UT's) for ten minutes (INN_CONTROL_PHASE_MS) before switching over
- *   to the next arrival's countdown — passport control on a landed flight
- *   isn't instantaneous, so the row keeps saying so for a bit rather than
+ *   due, and amber for the same five-minute run-up as UT. Once it lands,
+ *   the row reads "KONTROLL" (red, same word and tone as UT's) for ten
+ *   minutes (INN_CONTROL_PHASE_MS) before switching over to the next
+ *   arrival's countdown — passport control on a landed flight isn't
+ *   instantaneous, so the row keeps saying so for a bit rather than
  *   silently jumping straight to the next flight's ETA.
+ * A separate, singly-mounted ControlChime component (this panel is mounted
+ * twice — desktop and mobile, toggled with CSS, not conditional rendering)
+ * plays a chime the moment either side first enters its amber window.
  * Follows the shift currently selected on screen (`shift`, i.e. the
  * Dagskift/Kveldskift toggle) so it always matches whatever board is
  * actually showing below it — switch to Kveldskift mid-afternoon and the
@@ -187,26 +212,30 @@ export function NextControlPanel({
   const departureAt = departure ? actualInstant(departure) : null;
   const rawUtMs = departureAt !== null ? departureAt - CONTROL_OPENS_BEFORE_MS - now : null;
   const utOverdue = rawUtMs !== null && rawUtMs <= 0;
+  const utSoon = rawUtMs !== null && rawUtMs > 0 && rawUtMs <= SOON_THRESHOLD_MS;
   const utControlPhase = rawUtMs !== null && rawUtMs <= OVERDUE_FLOOR_MS;
   const utMs = rawUtMs !== null ? Math.max(rawUtMs, OVERDUE_FLOOR_MS) : null;
+  const utTone: RowTone = departure === null ? "green" : utOverdue ? "red" : utSoon ? "amber" : "green";
 
   const landedControl = activeLandedControl(board.arrivals, now);
   const arrival = landedControl ? null : nextPending(board.arrivals, hasLanded);
   const arrivalAt = arrival ? actualInstant(arrival) : null;
   const innMs = arrivalAt !== null ? Math.max(arrivalAt - now, 0) : null;
+  const innSoon = arrivalAt !== null && arrivalAt - now <= SOON_THRESHOLD_MS;
+  const innTone: RowTone = landedControl ? "red" : innSoon ? "amber" : "green";
 
   const utRow = (
     <ControlRow
       label="UT"
       text={departure === null ? "FERDIG" : utControlPhase ? "KONTROLL" : formatCountdown(utMs ?? 0)}
-      overdue={departure !== null && utOverdue}
+      tone={utTone}
     />
   );
   const innRow = (
     <ControlRow
       label="INN"
       text={landedControl ? "KONTROLL" : arrival === null ? "FERDIG" : formatCountdown(innMs ?? 0)}
-      overdue={landedControl !== null}
+      tone={innTone}
     />
   );
 
