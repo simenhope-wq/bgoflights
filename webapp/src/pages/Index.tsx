@@ -256,23 +256,20 @@ const Index = () => {
   );
 
   return (
-    <main className={cn("min-h-screen bg-background", kioskMode && "kiosk-mode")}>
-      {/* One true `position: fixed` backdrop, painted once behind everything,
-          instead of `background-attachment: fixed` on <main> itself (which
-          used to fight with the sticky bars below — Safari mis-renders a
-          fixed background that sits on or inside a sticky-positioned
-          element, which is what caused the whole page to wash out). Every
-          bar below can now just tint over this one shared layer rather than
-          drawing its own copy of the photo, so nothing has to be sticky
-          *and* fixed-background at the same time. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--background) / 0.35), hsl(var(--background) / 0.35)), url(/backgrounds/hangar-night.jpg)",
-        }}
-      />
+    <main
+      className={cn("min-h-screen bg-background bg-cover bg-center bg-fixed", kioskMode && "kiosk-mode")}
+      // <main> itself (not sticky, not fixed-positioned) carries the photo —
+      // this exact combination was already proven to render correctly and
+      // to coexist fine with sticky descendants. The wash bug only ever
+      // showed up when a *sticky* element also carried its own
+      // background-attachment: fixed (Safari mis-renders that specific
+      // combination) — the control bar below no longer does that; it just
+      // tints translucently over this photo instead.
+      style={{
+        backgroundImage:
+          "linear-gradient(hsl(var(--background) / 0.35), hsl(var(--background) / 0.35)), url(/backgrounds/hangar-night.jpg)",
+      }}
+    >
       <div className="sticky top-0 z-20 border-b border-rule bg-black">
         <div className="relative mx-auto flex h-8 max-w-4xl items-center justify-between gap-3 px-5 font-signage text-[9px] uppercase tracking-[0.24em] text-muted-foreground sm:h-9 sm:px-8 sm:text-[10px]">
           <span className="flex min-w-0 items-center gap-2">
