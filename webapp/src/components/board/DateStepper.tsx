@@ -22,7 +22,7 @@ export function DateStepper({ date, onShift, onToday }: DateStepperProps) {
   return (
     // The "I dag" line sits above the stepper and always occupies a row, so the
     // controls below keep the exact same size when you step away from today.
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-0.5">
       <div className="flex h-4 items-center justify-center sm:h-6">
         {isToday ? (
           <span className="font-signage text-[9px] uppercase tracking-[0.18em] text-flap-amber sm:text-[13px]">

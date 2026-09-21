@@ -1,5 +1,4 @@
 import { useNow } from "@/hooks/use-now";
-import { SplitFlapText } from "./SplitFlapText";
 
 const formatter = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Europe/Oslo",
@@ -10,30 +9,34 @@ const formatter = new Intl.DateTimeFormat("en-GB", {
 });
 
 /**
- * Local (Oslo) clock, ticking every second, in the exact same split-flap
- * module DateStepper uses for the date — same box, same size — so it reads
- * as a matching pair sitting one above the other rather than a bolted-on
- * addition.
+ * Local (Oslo) clock, ticking every second — plain white running text under
+ * the date stepper, no box around it (that's DateStepper's own module just
+ * above). Set in IBM Plex Mono (font-mono) to match the FLESLAND header,
+ * which inherits the same body font.
+ *
+ * Each character still renders in its own fixed-width slot (left over from
+ * chasing a jitter bug with the previous, non-monospace font) — harmless
+ * now that the font itself is true monospace, and it's cheap insurance
+ * against the same issue if the font ever changes again.
  */
 export function LocalTimeBox() {
   const now = useNow(1_000);
   const value = formatter.format(new Date(now));
 
   return (
-    <div
-      className="flex h-8 items-center rounded-[2px] border border-board-frame px-1.5 sm:px-2.5"
-      style={{
-        background:
-          "radial-gradient(120% 120% at 50% 0%, hsl(var(--board)) 0%, hsl(var(--board-deep)) 100%)",
-      }}
-    >
-      <SplitFlapText
-        value={value}
-        width={8}
-        flipKey={value}
-        className="text-[10px] leading-tight text-flap-ink sm:text-[18px]"
-        ariaLabel={value}
-      />
-    </div>
+    <time className="inline-flex justify-center font-mono text-[15px] font-normal text-white sm:text-[24px]">
+      {value.split("").map((char, i) => (
+        <span
+          key={i}
+          className={
+            char === ":"
+              ? "inline-block w-[0.45em] text-center"
+              : "inline-block w-[0.78em] text-center"
+          }
+        >
+          {char}
+        </span>
+      ))}
+    </time>
   );
 }

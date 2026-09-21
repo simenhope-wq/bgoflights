@@ -279,7 +279,7 @@ const Index = () => {
                 date has nowhere else to live once the sticky bar's own copy
                 of it was dropped as a duplicate, so it takes this corner
                 instead — same text, just relocated rather than shown twice. */}
-            <span className="hidden sm:inline">BGO · Schengen-grensetrafikk</span>
+            <span className="hidden sm:inline">BGO - non Schengen grensetrafikk</span>
             <span className="truncate whitespace-nowrap tracking-[0.16em] text-foreground sm:hidden">
               {formatLongDate(date)}
               {updatedAt && showingRequestedDate ? ` · oppdatert ${updatedAt}` : ""}
@@ -352,12 +352,12 @@ const Index = () => {
           <div className="hidden sm:mt-3 sm:block">
             <DateStepper date={date} onShift={shift} onToday={() => setDate(todayInOslo())} />
           </div>
-          <div className="hidden sm:mt-2 sm:flex sm:justify-center">
+          <div className="hidden sm:mt-1 sm:flex sm:justify-center">
             <LocalTimeBox />
           </div>
         </header>
 
-        <div className="sticky top-[33px] z-10 -mx-5 mt-1 border-b border-foreground/15 bg-background/55 px-5 py-2 sm:top-[37px] sm:-mx-8 sm:mt-2.5 sm:px-8 sm:py-3">
+        <div className="sticky top-[33px] z-10 -mx-5 mt-1 border-b border-foreground/15 bg-background/55 px-5 py-2 sm:top-[37px] sm:-mx-8 sm:mt-1 sm:px-8 sm:py-3">
           {/* Phone: the stepper is centred on the page and the refresh button
               floats at the right, level with it. */}
           <div className="relative flex items-center justify-center gap-2 sm:hidden">
