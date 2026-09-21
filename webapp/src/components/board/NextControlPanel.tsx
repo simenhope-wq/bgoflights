@@ -149,7 +149,7 @@ function ControlRow({
         value={text}
         width={text.length}
         flipKey={text}
-        className={cn("flap-title text-[15px]", TONE_CLASS[tone], flashing && "flap-flashing")}
+        className={cn("flap-title text-[12px] sm:text-[18px]", TONE_CLASS[tone], flashing && "flap-flashing")}
         ariaLabel={`${label} ${text}`}
       />
     </div>

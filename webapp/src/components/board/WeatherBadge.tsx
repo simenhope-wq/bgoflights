@@ -13,7 +13,7 @@ export function WeatherBadge() {
 
   return (
     <span
-      className="hidden items-baseline gap-1 whitespace-nowrap font-signage text-[11px] uppercase tracking-[0.1em] text-muted-foreground sm:inline-flex sm:text-xs"
+      className="hidden items-baseline gap-1 whitespace-nowrap font-signage text-[11px] uppercase tracking-[0.1em] text-muted-foreground sm:inline-flex sm:text-base"
       title={`Vær ved Flesland: ${data.tempC}°C, vind ${data.windMs} m/s`}
     >
       <span aria-hidden="true">{weatherEmoji(data.symbol)}</span>

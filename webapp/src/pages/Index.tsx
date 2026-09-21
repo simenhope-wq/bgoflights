@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/board/CopyButton";
 import { DateStepper } from "@/components/board/DateStepper";
+import { LocalTimeBox } from "@/components/board/LocalTimeBox";
 import { FlightSection } from "@/components/board/FlightSection";
 import { ControlChime } from "@/components/board/ControlChime";
 import { FeedStatusBadge, type FeedStatus } from "@/components/board/FeedStatusBadge";
@@ -310,7 +311,7 @@ const Index = () => {
       </div>
 
       {/* Wide enough for the 18px flaps to lay out at full column width. */}
-      <div className="mx-auto max-w-4xl px-5 pb-24 pt-2 sm:px-8 sm:pt-4">
+      <div className="mx-auto max-w-4xl px-5 pb-24 pt-2 sm:px-8 sm:pt-3">
         <header className="flex flex-col items-center text-center">
           {/* Three equal columns (same idiom as the sticky control bar
               further down) so Neste kontroll sits flush at the page's own
@@ -348,8 +349,11 @@ const Index = () => {
             </div>
             <div className="hidden sm:flex sm:justify-end">{muteToggle}</div>
           </div>
-          <div className="hidden sm:mt-4 sm:block">
+          <div className="hidden sm:mt-3 sm:block">
             <DateStepper date={date} onShift={shift} onToday={() => setDate(todayInOslo())} />
+          </div>
+          <div className="hidden sm:mt-2 sm:flex sm:justify-center">
+            <LocalTimeBox />
           </div>
         </header>
 
