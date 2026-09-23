@@ -493,7 +493,7 @@ const Index = () => {
             bevegelsene Avinor ikke publiserer. ETA/ETD står tom så lenge flyet går etter
             ruteplanen — den fylles bare når Avinor melder ny tid, og for ankomster først når
             flyet har lettet fra avgangsbyen. Statusfeltet følger samme fakta: I RUTE, NY TID
-            (gul), FORSINKET (rød), AVREIST, LANDET eller INNSTILT. Ankomster som er i lufta får
+            (gul), FORSINKET (rød), AVREIST, UNDERVEIS, LANDET eller INNSTILT. Ankomster som er i lufta får
             et radarikon ytterst til høyre — det åpner flyet på Flightradar24 i et nytt vindu.
             Bruk ← → for å bytte dag. Kopier-knappene legger ren tekst på utklippstavlen, klar
             for PowerPoint.

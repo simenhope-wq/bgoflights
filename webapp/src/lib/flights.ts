@@ -333,11 +333,25 @@ const timesOf = (item: Flight | PrivateJet): number[] => {
 
 /**
  * Orders a night shift correctly across midnight: 16:00 … 23:59, 00:00 …
- * 03:59. Sorted by the current best estimate rather than the original
- * schedule, so a delayed flight lands in the list around when it's actually
- * expected rather than where it was originally due.
+ * 03:59. Sorted by the absolute instant of the current best estimate — the
+ * scheduled UTC stamp shifted by the same delay `actualInstant` already
+ * computes for jets, the ISO timestamp ADS-B gives directly — rather than a
+ * bare minute-of-day. Minute-of-day treated an estimate that slipped past
+ * midnight (23:55 scheduled, delayed to 00:10) as minute 10, ahead of 23:35
+ * (minute 1415), so the delayed flight jumped to the top of the list instead
+ * of landing at the bottom where it actually belongs. An absolute timestamp
+ * sorts naturally across the date boundary instead.
  */
 export function shiftSortKey(item: Flight | PrivateJet): number {
+  if ("timeIso" in item) {
+    const at = Date.parse(item.timeIso);
+    if (!Number.isNaN(at)) return at;
+  } else {
+    const at = actualInstant(item);
+    if (at !== null) return at;
+  }
+  // Fallback for the rare case a timestamp is missing — same minute-of-day
+  // logic as before, so ordering degrades gracefully rather than breaking.
   const mins = minutesOf(bestKnownTimeOf(item)) ?? 0;
   return item.nextDay ? mins + 1440 : mins;
 }
@@ -461,11 +475,14 @@ export function flightStatus(
     if (label === "GATE CLOSED") return { label, tone: "dim" };
     return { label, tone: "amber" };
   }
-  // "Avreist" means gone from Bergen on the departure board, and left the
-  // origin city on the arrival board. An inbound that is in the air says so
-  // even when it is running late — the ETA column carries the delay in red.
+  // Avinor's "D" status is technically correct here (departed the origin
+  // airport) but reads as "Avreist" on an *arrivals* board, which people
+  // misread as gone from Bergen. "Underveis" says what it actually means:
+  // the aircraft is in the air, inbound. An inbound that is in the air says
+  // so even when it is running late — the ETA column carries the delay in
+  // red. "Avreist" stays the departures-board label (see hasDeparted below).
   if (kind === "arrivals" && flight.leftOrigin) {
-    return { label: "AVREIST", tone: isDelayed(flight) ? "red" : "ink" };
+    return { label: "UNDERVEIS", tone: isDelayed(flight) ? "red" : "ink" };
   }
   if (hasDeparted(flight)) return { label: "AVREIST", tone: "dim" };
   if (isDelayed(flight)) return { label: "FORSINKET", tone: "red" };
