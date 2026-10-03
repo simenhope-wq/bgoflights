@@ -11,12 +11,10 @@ import { FeedStatusBadge, type FeedStatus } from "@/components/board/FeedStatusB
 import { NextControlPanel } from "@/components/board/NextControlPanel";
 import { playChime } from "@/lib/chime";
 import { OsloClock } from "@/components/board/OsloClock";
-import { PrivateJetSection } from "@/components/board/PrivateJetSection";
 import { SplitFlapText } from "@/components/board/SplitFlapText";
 import { WeatherBadge } from "@/components/board/WeatherBadge";
 import { useFlightBoard } from "@/hooks/use-flight-board";
 import { useNow } from "@/hooks/use-now";
-import { usePrivateJets } from "@/hooks/use-private-jets";
 import { BorderCheckPanel } from "@/components/board/BorderCheckPanel";
 import { ShiftFilter } from "@/components/board/ShiftFilter";
 import {
@@ -28,7 +26,6 @@ import {
   emptyCoverage,
   formatLongDate,
   isStaleForTerritorial,
-  jetsForShift,
   shiftDate,
   todayInOslo,
   type FlightBoard,
@@ -54,9 +51,8 @@ const Index = () => {
   // showing everything — a manual pick from here still overrides it.
   const [shiftFilter, setShiftFilter] = useState<Shift | null>(() => currentShiftInOslo());
   // Territorial is a separate view mode, not a shift: when on, the normal
-  // four boxes (Avgang, Ankomst, the two private-jet boxes) are replaced by
-  // a single Ankomst-Territorial box, unfiltered by shift or day-shift math
-  // — the whole day, as asked.
+  // Avgang/Ankomst boxes are replaced by a single Ankomst-Territorial box,
+  // unfiltered by shift or day-shift math — the whole day, as asked.
   const [showTerritorial, setShowTerritorial] = useState(false);
   // Picking a shift always takes over from Territorial directly — no
   // separate step to "turn Territorial off" first.
@@ -108,14 +104,12 @@ const Index = () => {
   // something, regardless of how fast the network round trip actually was.
   const [manualRefreshing, setManualRefreshing] = useState(false);
   const { data, isLoading, isFetching, isError, error, refetch } = useFlightBoard(date);
-  const jets = usePrivateJets(date);
 
   // The night shift runs past midnight, so the next day's small hours belong to
   // it. Loaded always, so the "kopier kveldskift" button is complete even while
   // the board itself is showing every flight.
   const nextDate = shiftDate(date, 1);
   const nextDay = useFlightBoard(nextDate);
-  const nextJets = usePrivateJets(nextDate);
 
   const rawBoard = data ?? emptyBoard(date);
   const showingRequestedDate = rawBoard.date === date;
@@ -131,12 +125,9 @@ const Index = () => {
   );
 
   const board = boardForShift(rawBoard, nextDay.data, shiftFilter);
-  const shownJets = jetsForShift(jets.data, nextJets.data, shiftFilter);
 
   const dayBoard = boardForShift(rawBoard, nextDay.data, "day");
   const nightBoard = boardForShift(rawBoard, nextDay.data, "night");
-  const dayJets = jetsForShift(jets.data, nextJets.data, "day");
-  const nightJets = jetsForShift(jets.data, nextJets.data, "night");
 
   const shift = useCallback((days: number) => {
     setDate((current) => shiftDate(current, days));
@@ -189,9 +180,7 @@ const Index = () => {
     setManualRefreshing(true);
     Promise.all([
       refetch(),
-      jets.refetch(),
       nextDay.refetch(),
-      nextJets.refetch(),
       new Promise((resolve) => setTimeout(resolve, 500)),
     ]).finally(() => setManualRefreshing(false));
   };
@@ -394,11 +383,11 @@ const Index = () => {
             <div className="flex items-center justify-end gap-1.5">
               {refreshButton}
               <CopyButton
-                getBlocks={() => buildBoardBlocks(dayBoard, dayJets, "day")}
+                getBlocks={() => buildBoardBlocks(dayBoard, undefined, "day")}
                 label="Kopier dagskift"
               />
               <CopyButton
-                getBlocks={() => buildBoardBlocks(nightBoard, nightJets, "night")}
+                getBlocks={() => buildBoardBlocks(nightBoard, undefined, "night")}
                 label="Kopier kveldskift"
               />
               {kioskToggle}
@@ -469,12 +458,6 @@ const Index = () => {
                 loading={isLoading}
                 flipKey={`${board.date}-${shiftFilter ?? "all"}`}
                 getCopyBlocks={(shift) => buildSectionBlocks(board, "arrivals", shift)}
-              />
-              <PrivateJetSection
-                date={board.date}
-                board={shownJets}
-                loading={jets.isLoading}
-                flipKey={`${board.date}-${shiftFilter ?? "all"}`}
               />
             </>
           )}

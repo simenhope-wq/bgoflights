@@ -226,8 +226,13 @@ flightsRouter.get("/regions", (c) => c.json({ data: REGION_REFERENCE }));
  * lookups) and Avinor itself is a shared public resource — this cache means
  * however many people have the board open, Avinor gets hit at most once per
  * BOARD_CACHE_MS per requested date, not once per request. See lib/cache.ts.
+ *
+ * Raised from 60s to 90s (Oct 2026, Vercel CPU usage reduction) — the
+ * frontend still polls every 60s, so most polls land inside the same
+ * cache window; this just cuts how often the actual parse/cross-check
+ * work runs, at the cost of up to 90s data staleness instead of 60s.
  */
-const BOARD_CACHE_MS = 60_000;
+const BOARD_CACHE_MS = 90_000;
 
 async function buildBoard(date: string): Promise<FlightBoard> {
   const start = osloStartOfDay(date);

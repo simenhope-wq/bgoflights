@@ -60,7 +60,14 @@ app.route("/api/auth", authRouter);
 // Everything else gates itself behind the shared login
 // (each router calls .use("*", requireAuth) on itself).
 app.route("/api/flights", flightsRouter);
-app.route("/api/private-jets", privateJetsRouter);
+// Privatfly (ADS-B/OpenSky) switched off to save Vercel CPU — route stays
+// unmounted so it never runs at all (not even an invocation). The code,
+// OpenSky credentials and frontend box are untouched; flip this to true
+// (or just ask Claude) to bring it straight back.
+const PRIVATE_JETS_ENABLED = false;
+if (PRIVATE_JETS_ENABLED) {
+  app.route("/api/private-jets", privateJetsRouter);
+}
 app.route("/api/weather", weatherRouter);
 
 app.onError((err, c) => {
