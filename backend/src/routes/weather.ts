@@ -14,8 +14,11 @@ const BGO_LON = 5.2181;
  * MET Norway's forecast only actually changes every hour or so — polling far
  * more often than that would just be hammering a free public service for
  * data that hasn't moved. This powers a tiny icon, not a live radar.
+ *
+ * Raised from 15 min to 60 min (Oct 2026, Vercel CPU usage reduction) to
+ * match how often the underlying forecast actually updates.
  */
-const WEATHER_CACHE_MS = 15 * 60_000;
+const WEATHER_CACHE_MS = 60 * 60_000;
 
 async function fetchWeather(): Promise<Weather> {
   const res = await fetch(
