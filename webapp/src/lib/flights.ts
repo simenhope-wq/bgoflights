@@ -291,6 +291,30 @@ export function currentShiftInOslo(now: number = Date.now()): Shift {
   return mins >= NIGHT_START_MINUTES || mins < NIGHT_END_MINUTES ? "night" : "day";
 }
 
+/** 02:00–05:00, inside the night shift but historically near-dead for Schengen traffic. */
+const LOW_TRAFFIC_START_MINUTES = 2 * 60;
+const LOW_TRAFFIC_END_MINUTES = 5 * 60;
+
+/**
+ * True during the overnight lull (02:00–05:00 Oslo time) — used to back off
+ * polling to save Vercel CPU without stopping it outright, since the night
+ * shift is still on duty and an unscheduled movement (diverted flight,
+ * ambulance flight) should still surface within a few minutes, not three
+ * hours. See useFlightBoard's refetchInterval.
+ */
+export function isLowTrafficWindow(now: number = Date.now()): boolean {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: OSLO_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(now));
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0") % 24;
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  const mins = hour * 60 + minute;
+  return mins >= LOW_TRAFFIC_START_MINUTES && mins < LOW_TRAFFIC_END_MINUTES;
+}
+
 export function isInDayShift(flight: Flight | PrivateJet): boolean {
   // A next-day movement is only ever the tail of the previous night.
   if (flight.nextDay) return false;
